@@ -19,9 +19,24 @@ def _headers() -> dict[str, str]:
     }
 
 
+def _ar_msisdn(to: str) -> str:
+    """Normaliza números de Argentina para ENVIAR.
+
+    WhatsApp entrega el remitente con un 9 tras el código de país (549XXXXXXXXXX),
+    pero la Cloud API espera el número SIN ese 9 al enviar (54XXXXXXXXXX). Sin esta
+    corrección, los envíos a celulares argentinos fallan con
+    '(#131030) Recipient phone number not in allowed list' o no se entregan.
+    Es un comportamiento conocido y específico de Argentina."""
+    d = (to or "").lstrip("+")
+    if d.startswith("549") and len(d) == 13:
+        return "54" + d[3:]
+    return d
+
+
 def send_text(to: str, body: str) -> dict[str, Any]:
     """Envía un mensaje de texto. Dentro de la ventana de 24 h abierta por el
     cliente, estos mensajes son gratuitos."""
+    to = _ar_msisdn(to)
     if not settings.whatsapp_ready:
         log.info("[SIMULACIÓN] → %s: %s", to, body)
         return {"simulated": True, "to": to, "body": body}
@@ -42,6 +57,7 @@ def send_text(to: str, body: str) -> dict[str, Any]:
 def send_image(to: str, link: str, caption: str | None = None) -> dict[str, Any]:
     """Envía una imagen nativa de WhatsApp. `link` debe ser una URL pública HTTPS
     accesible por Meta (jpg/png). Dentro de la ventana de 24 h es gratuito."""
+    to = _ar_msisdn(to)
     if not settings.whatsapp_ready:
         log.info("[SIMULACIÓN] 🖼️ → %s: %s (%s)", to, link, caption or "")
         return {"simulated": True, "to": to, "image": link, "caption": caption}
@@ -70,6 +86,7 @@ def send_template(
 ) -> dict[str, Any]:
     """Envía una plantilla aprobada (para reabrir conversación fuera de las 24 h).
     `variables` completa los {{1}}, {{2}}, ... del cuerpo en orden."""
+    to = _ar_msisdn(to)
     components = []
     if variables:
         components.append({
