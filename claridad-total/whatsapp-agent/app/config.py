@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     # Negocio
     corredor_notify_number: str = ""
     panel_password: str = ""  # si se define, el panel pide esta clave (usuario libre)
+    agent_domain: str = ""    # dominio público (para URLs de fotos servidas por el server)
 
     @property
     def graph_base(self) -> str:

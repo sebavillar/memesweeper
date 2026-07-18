@@ -83,6 +83,14 @@ def set_estado(prop_id: str, estado: str) -> None:
     save(props)
 
 
+def update(prop_id: str, fields: dict[str, Any]) -> None:
+    props = load()
+    for p in props:
+        if p["id"] == prop_id:
+            p.update(fields)
+    save(props)
+
+
 def delete(prop_id: str) -> None:
     save([p for p in load() if p["id"] != prop_id])
 

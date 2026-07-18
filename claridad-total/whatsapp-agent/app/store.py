@@ -74,3 +74,25 @@ def add_visita(visita: dict[str, Any]) -> None:
 def list_visitas() -> list[dict[str, Any]]:
     with _LOCK:
         return _read("_visitas").get("visitas", [])
+
+
+# ---- Estadísticas por inmueble ----
+def bump_prop_stat(prop_id: str, metric: str, n: int = 1) -> None:
+    """Suma a un contador por propiedad (ofrecida, ficha, consultas, visitas)."""
+    if not prop_id:
+        return
+    with _LOCK:
+        data = _read("_prop_stats")
+        st = data.setdefault(prop_id, {})
+        st[metric] = st.get(metric, 0) + n
+        _write("_prop_stats", data)
+
+
+def get_prop_stats(prop_id: str) -> dict[str, Any]:
+    with _LOCK:
+        return _read("_prop_stats").get(prop_id, {})
+
+
+def all_prop_stats() -> dict[str, Any]:
+    with _LOCK:
+        return _read("_prop_stats")

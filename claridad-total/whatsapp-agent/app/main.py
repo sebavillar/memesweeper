@@ -7,9 +7,12 @@ Prueba local:  POST /simulate  {"from": "549...", "text": "hola"}  -> respuesta 
 from __future__ import annotations
 
 import logging
+import os
+from pathlib import Path
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 
 from . import agent
 from .config import settings
@@ -19,8 +22,14 @@ from .whatsapp import send_text
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("main")
 
-app = FastAPI(title="Claridad Total · Agente de WhatsApp", version="0.2.0")
+app = FastAPI(title="Claridad Total · Agente de WhatsApp", version="0.3.0")
 app.include_router(panel_router)
+
+# Fotos de propiedades: guardadas en el disco persistente y servidas públicamente
+# en /media para que WhatsApp/Meta puedan descargarlas.
+MEDIA_DIR = Path(os.environ.get("DATA_DIR") or "data") / "media"
+MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
 
 
 @app.get("/health")

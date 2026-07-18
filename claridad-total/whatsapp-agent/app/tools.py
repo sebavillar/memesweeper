@@ -116,6 +116,8 @@ def dispatch(name: str, args: dict[str, Any], wa_id: str) -> dict[str, Any]:
             cochera=args.get("cochera"),
             caracteristicas=args.get("caracteristicas"),
         )
+        for _m in matches:
+            store.bump_prop_stat(_m["id"], "ofrecida")
         return {
             "cantidad": len(matches),
             "propiedades": [
@@ -148,6 +150,7 @@ def dispatch(name: str, args: dict[str, Any], wa_id: str) -> dict[str, Any]:
             whatsapp.send_images(wa_id, fotos, caption=caption)
         else:
             whatsapp.send_text(wa_id, caption)
+        store.bump_prop_stat(p["id"], "ficha")
         return {"enviada": True, "fotos": len(fotos), "ficha": ficha}
 
     if name == "agendar_visita":
@@ -161,6 +164,7 @@ def dispatch(name: str, args: dict[str, Any], wa_id: str) -> dict[str, Any]:
             "telefono": args.get("telefono", wa_id),
         }
         store.add_visita(visita)
+        store.bump_prop_stat(args["propiedad_id"], "visitas")
         # Agendar una visita califica fuerte al lead.
         lead = store.upsert_lead(wa_id, {"visita_agendada": True,
                                           "nombre": args.get("nombre"),

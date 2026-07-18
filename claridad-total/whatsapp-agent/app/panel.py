@@ -5,16 +5,26 @@ si está definida, el navegador pide usuario/clave (el usuario puede ser cualqui
 from __future__ import annotations
 
 import html
+import os
 import re
 import secrets
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-from . import inventory, store
+from . import analysis, inventory, store
 from .config import settings
+
+_MEDIA_DIR = Path(os.environ.get("DATA_DIR") or "data") / "media"
+_ALLOWED_IMG = {".jpg", ".jpeg", ".png", ".webp"}
+
+
+def _media_base() -> str:
+    dom = settings.agent_domain
+    return f"https://{dom}/media" if dom else "/media"
 
 _security = HTTPBasic(auto_error=False)
 
@@ -86,6 +96,10 @@ textarea{min-height:64px;resize:vertical}
 
 def _esc(v: Any) -> str:
     return html.escape(str(v)) if v is not None else "—"
+
+
+def _money(n: Any) -> str:
+    return f"US$ {int(n or 0):,}".replace(",", ".")
 
 
 def _page(title: str, active: str, body: str) -> HTMLResponse:
@@ -175,12 +189,14 @@ def inventario() -> HTMLResponse:
             for e in ("disponible", "reservada", "vendida")
         )
         precio = f"US$ {int(p.get('precio_usd') or 0):,}".replace(",", ".")
+        st = store.get_prop_stats(p["id"])
+        nfotos = len(p.get("fotos") or [])
         rows += f"""<div class="prop">
-          <div><h3>{_esc(p.get('titulo'))}</h3>
+          <div><h3><a href="/panel/inventario/{p['id']}" style="color:inherit;text-decoration:none">{_esc(p.get('titulo'))} ›</a></h3>
             <div class="meta">{precio} · {_esc(p.get('sup_cubierta'))} m² · {_esc(p.get('ambientes'))} amb ·
             {_esc(p.get('barrio') or p.get('departamento'))}
             {' · cochera' if p.get('cochera') else ''}</div>
-            <div class="sub">{_esc(p.get('id'))}</div></div>
+            <div class="sub">{_esc(p.get('id'))} · {nfotos} 📷 · ofrecida {st.get('ofrecida',0)}× · fichas {st.get('ficha',0)} · visitas {st.get('visitas',0)}</div></div>
           <div class="actions">
             <span class="pill" style="background:{color}1f;color:{color}">{est.capitalize()}</span>
             <form class="inline" method="post" action="/panel/inventario/{p['id']}/estado">
@@ -196,7 +212,7 @@ def inventario() -> HTMLResponse:
     <div class="card">{lista}</div>
     <h2>Agregar propiedad</h2>
     <div class="card" style="padding:18px">
-      <form method="post" action="/panel/inventario/nueva">
+      <form method="post" action="/panel/inventario/nueva" enctype="multipart/form-data">
         <div class="field"><label>Título (opcional, se arma solo)</label>
           <input name="titulo" placeholder="Depto 3 amb · Godoy Cruz centro"></div>
         <div class="grid3">
@@ -224,9 +240,11 @@ def inventario() -> HTMLResponse:
           <input name="caracteristicas" placeholder="balcón, luminoso, amenities"></div>
         <div class="field"><label>Descripción</label>
           <textarea name="descripcion" placeholder="Luminoso, orientación norte, a 3 cuadras del parque..."></textarea></div>
+        <div class="field"><label>Fotos (desde tu dispositivo)</label>
+          <input type="file" name="fotos_files" accept="image/*" multiple></div>
         <div class="grid">
           <div class="field"><label>Estado legal (resumen)</label><input name="estado_legal_resumen" placeholder="Título al día"></div>
-          <div class="field"><label>Fotos (URLs públicas, separadas por coma)</label><input name="fotos" placeholder="https://..."></div>
+          <div class="field"><label>Fotos por URL (opcional, separadas por coma)</label><input name="fotos" placeholder="https://..."></div>
         </div>
         <div class="grid">
           <div class="field"><label>Asesor (nombre)</label><input name="asesor_nombre" placeholder="Sebastián"></div>
@@ -237,6 +255,94 @@ def inventario() -> HTMLResponse:
     </div>
     <p class="foot">Las fotos deben ser URLs públicas (https). La carga de imágenes desde el celular llega en la próxima mejora.</p>"""
     return _page("Panel · Inventario", "inventario", body)
+
+
+@router.get("/panel/inventario/{prop_id}", response_class=HTMLResponse)
+def inventario_detalle(prop_id: str) -> HTMLResponse:
+    p = inventory.get(prop_id)
+    if not p:
+        return _page("No encontrada", "inventario",
+                     '<p class="lead">Propiedad no encontrada. <a href="/panel/inventario">← Volver</a></p>')
+    st = store.get_prop_stats(prop_id)
+    val = analysis.valuar(p)
+
+    fotos = p.get("fotos") or []
+    fotos_html = "".join(
+        f'<img src="{html.escape(u)}" alt="" style="width:130px;height:98px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">'
+        for u in fotos
+    ) or '<span class="sub">Sin fotos cargadas todavía.</span>'
+
+    datos = [
+        ("Precio publicado", _money(p.get("precio_usd"))),
+        ("Tipo", (p.get("tipo") or "").capitalize()),
+        ("Zona", p.get("barrio") or p.get("departamento")),
+        ("Sup. cubierta", f"{_esc(p.get('sup_cubierta'))} m²"),
+        ("Sup. total", f"{_esc(p.get('sup_total'))} m²"),
+        ("Ambientes", p.get("ambientes")),
+        ("Dormitorios", p.get("dormitorios")),
+        ("Baños", p.get("banos")),
+        ("Antigüedad", f"{_esc(p.get('antiguedad'))} años"),
+        ("Cochera", "Sí" if p.get("cochera") else "No"),
+        ("Expensas", _money(p.get("expensas_usd")) if p.get("expensas_usd") else "—"),
+        ("Estado legal", p.get("estado_legal_resumen") or "—"),
+    ]
+    datos_html = "".join(
+        f'<div><div class="sub" style="text-transform:uppercase;font-size:.68rem;letter-spacing:.05em">{_esc(k)}</div>'
+        f'<div style="font-weight:600">{_esc(v)}</div></div>' for k, v in datos
+    )
+
+    stat_cards = "".join(
+        f'<div class="stat"><div class="f">{st.get(m,0)}</div><div class="l">{lbl}</div></div>'
+        for m, lbl in [("ofrecida", "Veces ofrecida"), ("ficha", "Fichas enviadas"), ("visitas", "Visitas agendadas")]
+    )
+
+    wf = "".join(
+        f'<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)">'
+        f'<span class="sub">{_esc(fac["label"])} · {_esc(fac["detalle"])}</span>'
+        f'<b>{_money(fac["val"]) if fac["label"].startswith("Base") else ("+" if fac["val"]>=0 else "−")+_money(abs(fac["val"]))}</b></div>'
+        for fac in val["factores"]
+    )
+    comps = "".join(
+        f'<tr><td><a href="/panel/inventario/{c["id"]}" style="color:var(--acc)">{_esc(c["titulo"])}</a></td>'
+        f'<td>{_money(c["precio_usd"])}</td><td>{_money(c["ppm"])}/m²</td><td>{_esc(c["estado"])}</td></tr>'
+        for c in val["comparables"]
+    ) or '<tr><td colspan="4" class="empty">Sin comparables en tu inventario todavía.</td></tr>'
+
+    body = f"""
+    <p class="lead"><a href="/panel/inventario">← Volver al inventario</a></p>
+    <h2 style="margin-top:6px">{_esc(p.get('titulo'))}</h2>
+    <div class="sub" style="margin-bottom:14px">{_esc(p.get('id'))} · {(p.get('estado') or '').capitalize()}</div>
+
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">{fotos_html}</div>
+      <div class="grid3" style="gap:14px">{datos_html}</div>
+      {('<p style="margin:14px 0 0">'+_esc(p.get('descripcion'))+'</p>') if p.get('descripcion') else ''}
+    </div>
+
+    <h2>Estadísticas del inmueble</h2>
+    <div class="stats">{stat_cards}</div>
+    <p class="foot">Métricas generadas por el agente de WhatsApp: cuántas veces lo ofreció a compradores, fichas enviadas y visitas agendadas.</p>
+
+    <h2>Análisis de mercado <span class="pill" style="background:#9C6A151f;color:#9C6A15">estimación</span></h2>
+    <div class="card" style="padding:18px">
+      <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end">
+        <div><div class="sub" style="text-transform:uppercase;font-size:.68rem">Valor estimado de cierre</div>
+          <div style="font-size:2rem;font-weight:700;color:var(--acc)">{_money(val['valor'])}</div>
+          <div class="sub">Rango {_money(val['low'])} — {_money(val['high'])} · {_money(val['ppm'])}/m²</div></div>
+        <div><div class="sub" style="text-transform:uppercase;font-size:.68rem">Confianza</div>
+          <div style="font-size:1.4rem;font-weight:700">{val['confianza']}%</div>
+          <div class="sub">{val['n_comparables']} comparables</div></div>
+        <div><div class="sub" style="text-transform:uppercase;font-size:.68rem">Oferta sugerida</div>
+          <div style="font-size:1.4rem;font-weight:700">{_money(val['oferta_sugerida'])}</div>
+          <div class="sub">+{int(0.12*100)}% s/ cierre</div></div>
+      </div>
+      <div style="margin-top:16px"><div class="sub" style="text-transform:uppercase;font-size:.68rem;margin-bottom:6px">Cómo se construye</div>{wf}</div>
+      <div style="margin-top:16px"><div class="sub" style="text-transform:uppercase;font-size:.68rem;margin-bottom:6px">Comparables (tu inventario)</div>
+        <table><thead><tr><th>Propiedad</th><th>Precio</th><th>US$/m²</th><th>Estado</th></tr></thead><tbody>{comps}</tbody></table></div>
+    </div>
+    <p class="foot">Valuación heurística (estimación explicable). <b>Próxima integración:</b> avalúo y datos de
+    <b>catastro (ATM/IDE Mendoza)</b> y comparables de <b>portales por scraping</b> — la interfaz ya está lista para mostrarlos aquí.</p>"""
+    return _page(f"Inmueble · {p.get('titulo')}", "inventario", body)
 
 
 @router.post("/panel/inventario/nueva")
@@ -272,7 +378,23 @@ async def inventario_nueva(request: Request) -> RedirectResponse:
         "fotos": lst("fotos"),
         "asesor": {"nombre": s("asesor_nombre"), "telefono": s("asesor_telefono")},
     }
-    inventory.add(prop)
+    prop = inventory.add(prop)
+    # Guardar fotos subidas desde el dispositivo, servidas públicamente en /media.
+    urls = list(prop.get("fotos") or [])
+    for uf in f.getlist("fotos_files"):
+        fn = getattr(uf, "filename", "") or ""
+        ext = os.path.splitext(fn)[1].lower()
+        if not fn or ext not in _ALLOWED_IMG:
+            continue
+        data = await uf.read()
+        if not data:
+            continue
+        _MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+        dest = _MEDIA_DIR / f"{prop['id']}-{len(urls) + 1}{ext}"
+        dest.write_bytes(data)
+        urls.append(f"{_media_base()}/{dest.name}")
+    if urls != (prop.get("fotos") or []):
+        inventory.update(prop["id"], {"fotos": urls})
     return RedirectResponse("/panel/inventario", status_code=303)
 
 
