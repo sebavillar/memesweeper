@@ -1,0 +1,5 @@
+# Caddy obtiene y renueva el certificado HTTPS (Let's Encrypt) automáticamente
+# para el dominio de AGENT_DOMAIN, y hace de reverse proxy hacia la app.
+{$AGENT_DOMAIN} {
+	reverse_proxy app:8000
+}

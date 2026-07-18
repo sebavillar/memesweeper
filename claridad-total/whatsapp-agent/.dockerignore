@@ -1,0 +1,9 @@
+.venv
+venv
+__pycache__
+*.pyc
+.env
+.git
+data/_conversations.json
+data/_leads.json
+data/_visitas.json

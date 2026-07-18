@@ -1,0 +1,35 @@
+# Despliegue en servidor propio: app (FastAPI) + Caddy (HTTPS automático).
+# Requisitos: Docker + un subdominio (AGENT_DOMAIN) apuntando a este servidor.
+# Uso:  docker compose up -d --build
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env            # WhatsApp token, Anthropic key, IDs, etc.
+    environment:
+      - DATA_DIR=/data
+    volumes:
+      - agent-data:/data      # conversaciones, leads y visitas persistentes
+    expose:
+      - "8000"                # interno; Caddy lo publica por HTTPS
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - AGENT_DOMAIN=${AGENT_DOMAIN}   # ej. bot.tudominio.com (viene del .env)
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data      # certificados Let's Encrypt (persistentes)
+      - caddy-config:/config
+
+volumes:
+  agent-data:
+  caddy-data:
+  caddy-config:
