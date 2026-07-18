@@ -146,12 +146,16 @@ def dispatch(name: str, args: dict[str, Any], wa_id: str) -> dict[str, Any]:
         caption = propiedad_resumen(p)
         if p.get("descripcion"):
             caption += f"\n\n{p['descripcion']}"
-        if fotos:
-            whatsapp.send_images(wa_id, fotos, caption=caption)
-        else:
-            whatsapp.send_text(wa_id, caption)
+        try:
+            if fotos:
+                whatsapp.send_images(wa_id, fotos, caption=caption)
+            else:
+                whatsapp.send_text(wa_id, caption)
+        except Exception as exc:  # noqa: BLE001
+            log.error("Error enviando ficha de %s: %s", p["id"], exc)
+            return {"enviada": False, "error": "no se pudo enviar la ficha; ofrecé derivar al asesor"}
         store.bump_prop_stat(p["id"], "ficha")
-        return {"enviada": True, "fotos": len(fotos), "ficha": ficha}
+        return {"enviada": True, "fotos": len(fotos)}
 
     if name == "agendar_visita":
         p = inventory.get(args["propiedad_id"])
