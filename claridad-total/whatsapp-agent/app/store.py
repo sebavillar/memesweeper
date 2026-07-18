@@ -35,15 +35,30 @@ def _write(name: str, data: dict[str, Any]) -> None:
 
 
 # ---- Conversaciones (historial de mensajes por número) ----
+def _sanitize(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """El historial que se manda a la API debe empezar con un mensaje 'user' de
+    texto. Al truncar se puede cortar un par tool_use/tool_result y dejar un
+    tool_result huérfano al inicio -> error 400. Recortamos desde el frente hasta
+    el primer 'user' sin bloques tool_result."""
+    for i, m in enumerate(messages):
+        if m.get("role") != "user":
+            continue
+        content = m.get("content")
+        blocks = content if isinstance(content, list) else []
+        if not any(isinstance(b, dict) and b.get("type") == "tool_result" for b in blocks):
+            return messages[i:]
+    return []
+
+
 def get_conversation(wa_id: str) -> list[dict[str, Any]]:
     with _LOCK:
-        return _read("_conversations").get(wa_id, [])
+        return _sanitize(_read("_conversations").get(wa_id, []))
 
 
 def save_conversation(wa_id: str, messages: list[dict[str, Any]]) -> None:
     with _LOCK:
         data = _read("_conversations")
-        data[wa_id] = messages[-40:]  # ventana de contexto acotada
+        data[wa_id] = _sanitize(messages[-40:])  # ventana acotada + inicio válido
         _write("_conversations", data)
 
 
