@@ -1,0 +1,357 @@
+<title>Claridad Total · Plan de arranque Mendoza</title>
+<style>
+  :root{
+    --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F5;
+    --ink:#161D26; --ink-soft:#3E4956; --muted:#6B7683; --faint:#9AA4AE;
+    --line:#E1E6EB; --line-strong:#CDD5DC;
+    --accent:#0C7C8C; --accent-strong:#095B67; --accent-wash:#E4F1F2;
+    --gold:#9C6A15; --gold-wash:#F3EBDA;
+    --good:#2E7D5B; --warn:#9A6A12; --crit:#B23F2A;
+    --shadow:0 1px 2px rgba(20,29,38,.05),0 8px 24px rgba(20,29,38,.06);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:"SF Mono","JetBrains Mono",ui-monospace,"Roboto Mono",Menlo,Consolas,monospace;
+    --measure:68ch;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#0E1319; --surface:#151C24; --surface-2:#1B242D;
+      --ink:#EAEEF2; --ink-soft:#B9C3CD; --muted:#8A95A0; --faint:#5E6974;
+      --line:#25303A; --line-strong:#33404B;
+      --accent:#3FC1D2; --accent-strong:#6FD6E3; --accent-wash:#123038;
+      --gold:#D9A34C; --gold-wash:#2A2317;
+      --good:#4FB88A; --warn:#D2A24A; --crit:#E0765E;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F5;
+    --ink:#161D26; --ink-soft:#3E4956; --muted:#6B7683; --faint:#9AA4AE;
+    --line:#E1E6EB; --line-strong:#CDD5DC;
+    --accent:#0C7C8C; --accent-strong:#095B67; --accent-wash:#E4F1F2;
+    --gold:#9C6A15; --gold-wash:#F3EBDA;
+    --good:#2E7D5B; --warn:#9A6A12; --crit:#B23F2A;
+    --shadow:0 1px 2px rgba(20,29,38,.05),0 8px 24px rgba(20,29,38,.06);
+  }
+  :root[data-theme="dark"]{
+    --paper:#0E1319; --surface:#151C24; --surface-2:#1B242D;
+    --ink:#EAEEF2; --ink-soft:#B9C3CD; --muted:#8A95A0; --faint:#5E6974;
+    --line:#25303A; --line-strong:#33404B;
+    --accent:#3FC1D2; --accent-strong:#6FD6E3; --accent-wash:#123038;
+    --gold:#D9A34C; --gold-wash:#2A2317;
+    --good:#4FB88A; --warn:#D2A24A; --crit:#E0765E;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--measure);margin:0 auto;padding:0 22px}
+  .wide{max-width:1080px;margin:0 auto;padding:0 22px}
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.15;text-wrap:balance;color:var(--ink)}
+  p{margin:0 0 1.05em}
+  a{color:var(--accent-strong);text-underline-offset:3px}
+  strong{font-weight:650;color:var(--ink)}
+  em{font-style:italic}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .lead{font-size:1.2em;line-height:1.55;color:var(--ink-soft)}
+
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);
+    background:radial-gradient(120% 90% at 88% -10%,var(--accent-wash) 0%,transparent 55%),linear-gradient(180deg,var(--surface),var(--paper))}
+  .hero .grid-lines{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:44px 44px;mask-image:radial-gradient(120% 80% at 80% 0%,#000 0%,transparent 62%)}
+  .hero-inner{position:relative;max-width:1080px;margin:0 auto;padding:60px 22px 50px}
+  .hero .kicker{font-family:var(--mono);font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .hero .kicker b{color:var(--accent);font-weight:600}
+  .hero h1{font-size:clamp(2.2rem,6vw,3.9rem);letter-spacing:-.01em;margin:.35em 0 .3em;max-width:16ch}
+  .hero .sub{font-size:clamp(1.05rem,2.3vw,1.35rem);color:var(--ink-soft);max-width:52ch;line-height:1.5;font-family:var(--serif);font-style:italic}
+  .hero-meta{display:flex;gap:26px;flex-wrap:wrap;margin-top:30px;padding-top:20px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .hero-meta div span{display:block;color:var(--ink);font-size:14px;margin-top:3px;font-family:var(--sans);font-weight:600}
+
+  section{padding:50px 0}
+  .sec-head{margin-bottom:24px}
+  .sec-head .num{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.14em;font-weight:600}
+  .sec-head h2{font-size:clamp(1.65rem,4vw,2.4rem);margin:.15em 0 .1em;letter-spacing:-.01em}
+  .sec-head .dek{color:var(--muted);font-size:1.02em;max-width:62ch}
+  hr.rule{border:0;border-top:1px solid var(--line);margin:0}
+  .band{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:24px 0}
+  .stat{background:var(--surface);padding:20px 18px}
+  .stat .fig{font-family:var(--serif);font-size:1.95rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+  .stat .fig.accent{color:var(--accent)} .stat .fig.gold{color:var(--gold)}
+  .stat .lbl{font-size:.84em;color:var(--muted);margin-top:8px;line-height:1.35}
+
+  .callout{border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:18px 22px;margin:24px 0;box-shadow:var(--shadow)}
+  .callout.gold{border-left-color:var(--gold)} .callout.crit{border-left-color:var(--crit)}
+  .callout .tag{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:6px;display:block}
+  .callout.gold .tag{color:var(--gold)} .callout.crit .tag{color:var(--crit)}
+  .callout p:last-child{margin-bottom:0}
+  blockquote{margin:24px 0;padding:6px 0 6px 24px;border-left:3px solid var(--line-strong);font-family:var(--serif);font-style:italic;font-size:1.24em;line-height:1.45;color:var(--ink)}
+
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;margin:22px 0;box-shadow:var(--shadow)}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:.9em}
+  th,td{text-align:left;padding:13px 15px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{background:var(--surface-2);font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  tbody tr:last-child td{border-bottom:0}
+  tbody td:first-child{font-weight:600;color:var(--ink)}
+  .pill{font-family:var(--mono);font-size:10.5px;padding:2px 8px;border-radius:20px;white-space:nowrap}
+  .p-good{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good)}
+  .p-warn{background:var(--gold-wash);color:var(--gold)}
+  .p-crit{background:color-mix(in srgb,var(--crit) 14%,transparent);color:var(--crit)}
+  .p-acc{background:var(--accent-wash);color:var(--accent-strong)}
+
+  .principles{display:grid;gap:14px;margin-top:8px;counter-reset:pr}
+  .principle{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;box-shadow:var(--shadow)}
+  .principle::before{counter-increment:pr;content:counter(pr,decimal-leading-zero);font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);padding-top:2px}
+  .principle h4{margin:0 0 5px;font-size:1.18rem} .principle p{margin:0;font-size:.93em;color:var(--ink-soft)}
+  .principle p+p{margin-top:8px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+  .chip{font-family:var(--mono);font-size:11.5px;background:var(--paper);border:1px solid var(--line-strong);border-radius:20px;padding:5px 12px;color:var(--ink-soft)}
+
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  .side{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:22px;box-shadow:var(--shadow)}
+  .side h4{margin:0 0 4px;font-size:1.25rem}
+  .side .who{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+  .side ul{margin:0;padding:0;list-style:none;display:grid;gap:11px}
+  .side li{font-size:.91em;color:var(--ink-soft);padding-left:20px;position:relative;line-height:1.5}
+  .side li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:7px;border-radius:2px;background:var(--accent);transform:rotate(45deg)}
+  .side li b{color:var(--ink)}
+
+  .road{display:grid;gap:0;margin-top:8px;border-left:2px solid var(--line-strong)}
+  .phase{position:relative;padding:0 0 26px 28px}
+  .phase::before{content:"";position:absolute;left:-7px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);box-shadow:0 0 0 2px var(--accent)}
+  .phase:last-child{padding-bottom:0}
+  .phase .pt{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .phase h4{margin:3px 0 5px;font-size:1.2rem} .phase p{margin:0;font-size:.92em;color:var(--ink-soft)}
+
+  footer{border-top:1px solid var(--line);padding:38px 0 56px;color:var(--muted);font-size:.85em}
+  footer .wide{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;align-items:center}
+  .note{font-size:.82em;color:var(--faint);font-family:var(--mono)}
+  .sources{columns:2;column-gap:34px;font-size:.8em;color:var(--muted)}
+  .sources li{margin-bottom:10px;break-inside:avoid} .sources a{color:var(--ink-soft);word-break:break-word}
+
+  @media (max-width:640px){
+    body{font-size:16px} .duo{grid-template-columns:1fr} .sources{columns:1}
+    .principle{grid-template-columns:1fr;gap:6px} .principle::before{padding-top:0}
+    .hero-inner{padding:42px 22px 38px}
+  }
+  a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  @media print{
+    :root{--paper:#fff;--surface:#fff}
+    body{font-size:11.5pt} .hero .grid-lines{display:none}
+    section{padding:20px 0;break-inside:avoid}
+    .principle,.side,.callout,.stat{box-shadow:none} a{color:var(--ink);text-decoration:none}
+  }
+</style>
+
+<div class="hero">
+  <div class="grid-lines"></div>
+  <div class="hero-inner">
+    <div class="kicker"><b>Anexo operativo</b> <span>·</span> Claridad Total <span>·</span> Julio 2026</div>
+    <h1>Plan de arranque: Mendoza</h1>
+    <p class="sub">Cómo lanzar en un mercado real, con dos restricciones convertidas en ventaja: el matriculado como núcleo y la escasez de datos como foso a construir.</p>
+    <div class="hero-meta">
+      <div>Mercado inicial<span>Gran Mendoza · 1ª Circunscripción</span></div>
+      <div>Restricción 1<span>Comercialización → matriculado adentro</span></div>
+      <div>Restricción 2<span>Información → dataset propietario</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <section id="tesis">
+    <div class="sec-head"><div class="num">EL REENCUADRE</div><h2>Las dos restricciones se resuelven con la misma jugada</h2></div>
+    <p class="lead">Identificaste bien los dos muros: <strong>no podés comercializar sin un matriculado</strong>, y <strong>no hay datos limpios</strong> de precios ni de estado legal de los inmuebles. La buena noticia es que el corredor matriculado no es solo el permiso legal para vender: en Mendoza es también <strong>la llave de acceso al dato más valioso y difícil</strong> —los informes de dominio y gravámenes del Registro, que un particular no puede pedir sobre terceros. Incorporar al matriculado desde el día uno resuelve las dos restricciones a la vez y, encima, te da un activo que un competidor puramente tecnológico no puede replicar.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="fig accent">~16–18k</div><div class="lbl">Avisos de venta en la provincia: mercado abarcable para dominarlo entero</div></div>
+      <div class="stat"><div class="fig">US$78k</div><div class="lbl">Precio promedio de venta en Mendoza (2025). Deptos ~58k, casas ~107k</div></div>
+      <div class="stat"><div class="fig gold">+18%</div><div class="lbl">Suba interanual con "sobreprecios" y fuerte disparidad: asimetría alta = oportunidad</div></div>
+      <div class="stat"><div class="fig accent">2005</div><div class="lbl">Ley 7.372 crea el CCPIM: marco claro sobre quién puede comercializar</div></div>
+    </div>
+
+    <div class="callout">
+      <span class="tag">El principio rector para Mendoza</span>
+      <p>No vas contra el corredor: <strong>le das superpoderes y bajás el costo al cliente</strong>. El matriculado firma y accede al Registro; la plataforma le trae demanda, datos e IA que le ahorran días de trabajo. Ambos ganan, el cliente paga menos y con más claridad, y el Colegio te ve como aliado, no como amenaza. Esa postura evita la guerra regulatoria que hundió reputaciones en otros mercados.</p>
+    </div>
+  </section>
+</div>
+
+<hr class="rule">
+
+<!-- RESTRICCION 1 -->
+<div class="band"><div class="wrap"><section id="matriculado">
+  <div class="sec-head">
+    <div class="num">RESTRICCIÓN 1 · COMERCIALIZACIÓN</div>
+    <h2>El matriculado como núcleo, no como parche</h2>
+    <p class="dek">El marco legal mendocino es explícito. En vez de esquivarlo, se diseña el producto alrededor de él —y se lo aprovecha.</p>
+  </div>
+
+  <h3>Qué dice la ley en Mendoza</h3>
+  <p>La <strong>Ley Provincial 7.372 (2005)</strong> creó el <strong>Colegio de Corredores Públicos Inmobiliarios de Mendoza (CCPIM)</strong>. Para ejercer el corretaje inmobiliario en la provincia hay que estar matriculado: se exige <strong>título universitario habilitante</strong>, domicilio en Mendoza, <strong>seguro de caución anual</strong> y una fianza. Además —y esto es clave para la estructura societaria— una sociedad no puede ejercer el corretaje si alguno de sus socios que interviene en la actividad no está matriculado. Traducción: el matriculado tiene que ser una figura real y central de la operación, no un sello de goma.</p>
+
+  <h3>Tres formas de incorporarlo (de menor a mayor ambición)</h3>
+  <div class="principles">
+    <div class="principle"><div>
+      <h4>Corredor matriculado como socio fundador</h4>
+      <p>Un corredor con matrícula activa integra la sociedad y es la figura que habilita legalmente toda operación. La plataforma es la herramienta que él usa y potencia. <strong>Ventaja:</strong> control total, coherencia, dogfooding real. <strong>Ideal para la Fase 0–1.</strong></p>
+    </div></div>
+    <div class="principle"><div>
+      <h4>Red de corredores matriculados sobre la plataforma</h4>
+      <p>La plataforma se vuelve infraestructura (software + datos + demanda) que <strong>muchos corredores matriculados</strong> usan para operar mejor. Vos no comercializás: das las herramientas y capturás valor por uso y por éxito. <strong>Ventaja:</strong> escala rápido sin que vos seas el corredor de cada operación. Modelo B2B2C.</p>
+    </div></div>
+    <div class="principle"><div>
+      <h4>Plataforma + servicio profesional integrado</h4>
+      <p>El consumidor final opera "directo" en la app, pero cada transacción tiene asignado un matriculado de la red que la valida, firma y accede al Registro. La intermediación opaca desaparece; la <strong>habilitación profesional queda como una capa de servicio</strong>, no como el dueño de la relación con el cliente. <strong>Ideal para la Fase 2+.</strong></p>
+    </div></div>
+  </div>
+
+  <div class="callout gold">
+    <span class="tag">Recomendación</span>
+    <p>Arrancá con la <strong>opción 1</strong> (un corredor matriculado fundador) para el MVP, y diseñá el producto desde el principio para que evolucione a la <strong>opción 2/3</strong> (red de matriculados). Así probás el producto operando de verdad, y tenés el camino a escala ya trazado sin rehacer la arquitectura ni el modelo legal.</p>
+  </div>
+</section></div></div>
+
+<!-- RESTRICCION 2 -->
+<div class="wrap"><section id="datos">
+  <div class="sec-head">
+    <div class="num">RESTRICCIÓN 2 · INFORMACIÓN</div>
+    <h2>De dónde sale el dato en Mendoza</h2>
+    <p class="dek">El sector no tiene un MLS ni una base pública de precios de cierre —esa es exactamente la asimetría que vas a monetizar. Pero hay más materia prima disponible de la que parece. Se arma capa por capa.</p>
+  </div>
+
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Fuente</th><th>Qué aporta</th><th>Acceso</th></tr></thead>
+    <tbody>
+      <tr><td>ATM · Dir. Gral. de Catastro</td><td>Parcelario, avalúo fiscal, características físicas/jurídicas/económicas del inmueble</td><td><span class="pill p-good">Público / consulta</span></td></tr>
+      <tr><td>IDE Mendoza · Datos Abiertos Ciudad</td><td>Parcelario catastral georreferenciado (2021–2025), capas de contexto urbano</td><td><span class="pill p-good">Abierto</span></td></tr>
+      <tr><td>Registro de la Propiedad Raíz (SAYGES / Mi Registro)</td><td>Informe Nº 1: dominio y gravámenes, titularidad, embargos, hipotecas</td><td><span class="pill p-acc">Solo profesional habilitado ↦ tu matriculado</span></td></tr>
+      <tr><td>Portales (Zonaprop, Argenprop, Inmoup, MercadoLibre)</td><td>Precios de <em>oferta</em> y stock por zona — baseline, pero inflado</td><td><span class="pill p-good">Scraping / público</span></td></tr>
+      <tr><td>Escribanías</td><td>Precio real de <em>escritura</em> (cierre) — el dato de oro que nadie centraliza</td><td><span class="pill p-warn">Vía alianzas</span></td></tr>
+      <tr><td>Municipios / ATM</td><td>Deudas de inmobiliario, tasas, planos aprobados, estado de obra</td><td><span class="pill p-warn">Mixto</span></td></tr>
+      <tr><td>Tu propia plataforma</td><td>Precio real de cada operación cerrada = el dataset propietario</td><td><span class="pill p-acc">Se construye con el uso</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>El problema central: no hay precio de cierre público</h3>
+  <p>En Argentina, a diferencia de EE.UU., <strong>no existe un MLS ni una base oficial de precios de transacción</strong>. Los portales solo muestran precio de oferta —que en Mendoza hoy viene con "sobreprecios" y gran disparidad. Esa brecha entre lo que se pide y lo que realmente se paga <strong>es la asimetría de información hecha mercado</strong>. Quien construya el dataset de precios reales de cierre tiene el foso.</p>
+
+  <blockquote>En un mercado opaco, construir el dataset de precios y estado legal reales no es un costo: es el producto defendible.</blockquote>
+
+  <h3>Estrategia de arranque en frío (cold-start) del dato</h3>
+  <div class="duo">
+    <div class="side">
+      <h4>Día 1 — Semilla</h4>
+      <div class="who">Con lo que ya está disponible</div>
+      <ul>
+        <li><b>Avalúo fiscal + parcelario</b> de ATM/IDE como base objetiva de cada inmueble.</li>
+        <li><b>Precios de oferta</b> de portales para un primer rango de mercado por zona.</li>
+        <li><b>Dominio y gravámenes</b> vía tu matriculado, para el estado legal verificado.</li>
+        <li>Valuación explicable inicial calibrada con esto, declarando su nivel de confianza.</li>
+      </ul>
+    </div>
+    <div class="side">
+      <h4>Con el uso — Volante</h4>
+      <div class="who">El dato propietario que nadie tiene</div>
+      <ul>
+        <li><b>Cada operación cerrada</b> en la plataforma aporta un precio de cierre real.</li>
+        <li><b>Alianzas con escribanías</b> de la red que aportan precios de escritura.</li>
+        <li><b>La red de corredores</b> carga operaciones y comparables reales.</li>
+        <li>El modelo de valuación mejora con cada dato → mejores estimaciones → más uso.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <span class="tag">Benchmark a mirar</span>
+    <p><strong>IDECOR (Córdoba)</strong> es la referencia argentina: catastro online, valuación masiva de inmuebles y datos abiertos integrados. Mendoza está más atrás, pero con ATM + IDE + Datos Abiertos de la Ciudad hay una base concreta sobre la cual construir algo equivalente —privado y enfocado en la transacción— antes de que lo haga el Estado.</p>
+  </div>
+</section></div>
+
+<!-- MVP -->
+<div class="band"><div class="wide"><section id="mvp">
+  <div class="sec-head">
+    <div class="num">EL PRODUCTO ADAPTADO</div>
+    <h2>MVP Mendoza: "Pasaporte del inmueble" + el corredor como usuario ancla</h2>
+    <p class="dek">La Fase 0 del plan original, aterrizada. Primero se enamora al corredor matriculado (B2B); él trae los inmuebles y las operaciones; el consumidor final llega después, ya con datos y confianza.</p>
+  </div>
+
+  <h3>El primer producto concreto</h3>
+  <p>Dado un <strong>padrón / nomenclatura catastral</strong>, la app arma en minutos el expediente que hoy a un corredor le lleva días:</p>
+  <div class="chips">
+    <span class="chip">Parcela + avalúo fiscal (ATM/IDE)</span>
+    <span class="chip">Dominio y gravámenes (Registro, vía matriculado)</span>
+    <span class="chip">Deudas de inmobiliario / tasas</span>
+    <span class="chip">Comparables de oferta por zona</span>
+    <span class="chip">Valuación explicable en rango + confianza</span>
+    <span class="chip">Banderas rojas legales</span>
+  </div>
+  <p style="margin-top:18px">Ese "pasaporte" resuelve el dolor de las dos partes: al vendedor le da un precio fundamentado y papeles en orden; al comprador, certeza de que el inmueble no esconde un limón. Y al corredor le ahorra días de trámite disperso.</p>
+
+  <h3>Por qué el corredor es el usuario ancla</h3>
+  <p>El consumidor final compra una casa una o dos veces en la vida —cuesta y es caro adquirirlo. El corredor matriculado hace decenas de operaciones y siente el dolor todos los días. Si le das una herramienta que hace su due diligence en minutos y le trae clientes mejor calificados, <strong>se vuelve tu canal de distribución y tu fuente de datos a la vez</strong>. Empezás B2B, monetizás con SaaS + fee de éxito compartido, y construís el dataset. Recién con eso abrís la cara al consumidor.</p>
+
+  <div class="callout gold">
+    <span class="tag">Wedge geográfico dentro de Mendoza</span>
+    <p>Arrancá por <strong>Ciudad de Mendoza + Godoy Cruz + Maipú y Luján de Cuyo</strong>: concentran el mayor volumen de operaciones y valor, la data catastral urbana es más completa, y todo cae en la <strong>1ª Circunscripción registral</strong> (evitás fragmentar el acceso al Registro al principio). Dominá ese núcleo antes de abrir al resto de la provincia.</p>
+  </div>
+</section></div></div>
+
+<!-- ROADMAP -->
+<div class="wrap"><section id="roadmap">
+  <div class="sec-head">
+    <div class="num">ROADMAP MENDOZA</div>
+    <h2>De un corredor a una red</h2>
+    <p class="dek">Cada fase es valiosa por sí sola. No dependés de llegar a la última para tener un negocio.</p>
+  </div>
+  <div class="road">
+    <div class="phase"><div class="pt">Fase A · 0–6 meses</div><h4>Un corredor matriculado + la herramienta interna</h4><p>Socio corredor fundador. Construís el "pasaporte del inmueble" y lo usás para operar de verdad en el wedge (Ciudad/Godoy Cruz/Maipú/Luján). Dogfooding: cada operación real valida el producto y siembra el dataset. Acercamiento inicial al CCPIM como aliado.</p></div>
+    <div class="phase"><div class="pt">Fase B · 6–18 meses</div><h4>La red de corredores como plataforma</h4><p>Abrís la herramienta a otros matriculados (SaaS + fee de éxito compartido). Ellos cargan operaciones y comparables → el dataset de precios reales de cierre crece. Sumás alianzas con escribanías. Ya sos infraestructura del mercado, no un corredor más.</p></div>
+    <div class="phase"><div class="pt">Fase C · 18–30 meses</div><h4>Cara al consumidor: los dos copilotos</h4><p>Con datos y confianza acumulados, lanzás la experiencia para comprador y vendedor: valuación explicable, due diligence automática, matching, simulación financiera y asistente de negociación. El matriculado queda como capa de servicio que firma y accede al Registro.</p></div>
+    <div class="phase"><div class="pt">Fase D · 30+ meses</div><h4>Replicar y profundizar</h4><p>Extendés a otras circunscripciones y provincias replicando el playbook de datos. Explorás transacción de punta a punta (escrow, cierre orquestado) y extensiones como financiamiento o inversión fraccional, ya con el volante de inercia girando.</p></div>
+  </div>
+</section></div>
+
+<!-- RIESGOS -->
+<div class="band"><div class="wrap"><section id="riesgos">
+  <div class="sec-head"><div class="num">RIESGOS MENDOZA</div><h2>Lo específico de este mercado</h2></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Riesgo</th><th>Mitigación</th></tr></thead>
+    <tbody>
+      <tr><td>No hay precio de cierre público (cold start del dato)</td><td>Semilla con avalúo fiscal + oferta; volante con operaciones propias + escribanías + red</td></tr>
+      <tr><td>Resistencia del gremio / CCPIM</td><td>Posicionamiento aliado: matriculado adentro, "potenciar al corredor", relación institucional temprana</td></tr>
+      <tr><td>Operaciones informales, en efectivo y dolarizadas</td><td>Vender transparencia y trazabilidad como valor; no forzar el escrow al inicio</td></tr>
+      <tr><td>Datos fragmentados por circunscripción registral</td><td>Arrancar solo por la 1ª Circunscripción (Gran Mendoza) y expandir después</td></tr>
+      <tr><td>Ciclo macro y capital escaso</td><td>Nacer asset-light y eficiente; el MVP B2B genera ingreso temprano sin quemar capital</td></tr>
+      <tr><td>Dependencia de un único matriculado fundador</td><td>Diseñar desde el día 1 para la red (opción 2/3) y no atarse a una sola persona</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout">
+    <span class="tag">La síntesis</span>
+    <p>Mendoza es el primer mercado ideal justamente por lo que parece jugarte en contra: es <strong>abarcable</strong> (16–18k avisos), <strong>opaco</strong> (por eso tu claridad vale) y <strong>regulado</strong> (por eso el matriculado te da acceso y legitimidad). Convertís las dos restricciones en los dos pilares de tu foso: la <em>habilitación profesional</em> y el <em>dato verificado</em>. Ninguna de las dos la puede copiar rápido un competidor que llega solo con tecnología.</p>
+  </div>
+</section></div></div>
+
+<div class="wrap"><section id="fuentes">
+  <div class="sec-head"><div class="num">FUENTES · MENDOZA</div><h2>Referencias locales</h2></div>
+  <ol class="sources">
+    <li>CCPIM — <a href="https://www.ccpim.com.ar/nuevos-matriculados">Colegio de Corredores Públicos Inmobiliarios de Mendoza · matriculación</a></li>
+    <li>SAIJ — <a href="https://www.saij.gob.ar/7372-local-mendoza-creacion-colegio-corredores-publicos-inmobiliarios-mendoza-lpm0007372-2005-05-18/123456789-0abc-defg-273-7000mvorpyel">Ley 7.372 · creación del CCPIM (2005)</a></li>
+    <li>Poder Judicial Mendoza — <a href="https://jusmendoza.gob.ar/informe-de-titularidad/">Informe de titularidad (SAYGES DRP / Mi Registro)</a></li>
+    <li>Poder Judicial Mendoza — <a href="https://jusmendoza.gob.ar/informe-de-estado-juridico-del-inmueble/">Informe de estado jurídico del inmueble (dominio y gravámenes)</a></li>
+    <li>ATM Mendoza — <a href="https://www.atm.mendoza.gov.ar/portalatm/zoneTop/catastro/catastro.jsp">Dirección General de Catastro</a></li>
+    <li>Ciudad de Mendoza — <a href="https://datos.ciudaddemendoza.gob.ar/dataset/parcelario-catastral">Portal de Datos Abiertos · parcelario catastral 2021–2025</a></li>
+    <li>IDECOR — <a href="https://www.idecor.gob.ar/catastro-online-como-buscar-un-inmueble-de-manera-simple-y-precisa/">Catastro online (benchmark Córdoba)</a></li>
+    <li>Inmoup — <a href="https://blog.inmoup.com.ar/2025/10/15/mercado-inmobiliario-mendoza-2025/">Mercado inmobiliario Mendoza 2025: precios y oportunidades</a></li>
+    <li>El Sol — <a href="https://www.elsol.com.ar/mendoza/el-mercado-inmobiliario-en-mendoza-entre-subas-selectivas-sobreprecios-y-zonas-calientes/">Mendoza: subas selectivas, sobreprecios y zonas calientes</a></li>
+    <li>Zonaprop — <a href="https://www.zonaprop.com.ar/blog/como-es-mendoza/">Claves de la oferta inmobiliaria de Mendoza</a></li>
+  </ol>
+</section></div>
+
+<footer><div class="wide">
+  <span>Claridad Total · Plan de arranque Mendoza</span>
+  <span class="note">Anexo del informe estratégico · Julio 2026</span>
+</div></footer>

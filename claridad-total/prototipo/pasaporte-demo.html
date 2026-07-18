@@ -1,0 +1,473 @@
+<title>Pasaporte del Inmueble · Demo Mendoza</title>
+<style>
+  :root{
+    --paper:#F6F7F9;--surface:#FFFFFF;--surface-2:#EFF2F5;
+    --ink:#161D26;--ink-soft:#3E4956;--muted:#6B7683;--faint:#9AA4AE;
+    --line:#E1E6EB;--line-strong:#CDD5DC;
+    --accent:#0C7C8C;--accent-strong:#095B67;--accent-wash:#E4F1F2;
+    --gold:#9C6A15;--gold-wash:#F3EBDA;
+    --good:#2E7D5B;--good-wash:#E3F0EA;--warn:#9A6A12;--warn-wash:#F5ECD9;--crit:#B23F2A;--crit-wash:#F6E3DE;
+    --shadow:0 1px 2px rgba(20,29,38,.05),0 8px 24px rgba(20,29,38,.06);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:"SF Mono","JetBrains Mono",ui-monospace,"Roboto Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --paper:#0E1319;--surface:#151C24;--surface-2:#1B242D;
+    --ink:#EAEEF2;--ink-soft:#B9C3CD;--muted:#8A95A0;--faint:#5E6974;
+    --line:#25303A;--line-strong:#33404B;
+    --accent:#3FC1D2;--accent-strong:#6FD6E3;--accent-wash:#123038;
+    --gold:#D9A34C;--gold-wash:#2A2317;
+    --good:#4FB88A;--good-wash:#12271E;--warn:#D2A24A;--warn-wash:#2A2214;--crit:#E0765E;--crit-wash:#2E1712;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }}
+  :root[data-theme="light"]{
+    --paper:#F6F7F9;--surface:#FFFFFF;--surface-2:#EFF2F5;--ink:#161D26;--ink-soft:#3E4956;--muted:#6B7683;--faint:#9AA4AE;--line:#E1E6EB;--line-strong:#CDD5DC;--accent:#0C7C8C;--accent-strong:#095B67;--accent-wash:#E4F1F2;--gold:#9C6A15;--gold-wash:#F3EBDA;--good:#2E7D5B;--good-wash:#E3F0EA;--warn:#9A6A12;--warn-wash:#F5ECD9;--crit:#B23F2A;--crit-wash:#F6E3DE;--shadow:0 1px 2px rgba(20,29,38,.05),0 8px 24px rgba(20,29,38,.06);
+  }
+  :root[data-theme="dark"]{
+    --paper:#0E1319;--surface:#151C24;--surface-2:#1B242D;--ink:#EAEEF2;--ink-soft:#B9C3CD;--muted:#8A95A0;--faint:#5E6974;--line:#25303A;--line-strong:#33404B;--accent:#3FC1D2;--accent-strong:#6FD6E3;--accent-wash:#123038;--gold:#D9A34C;--gold-wash:#2A2317;--good:#4FB88A;--good-wash:#12271E;--warn:#D2A24A;--warn-wash:#2A2214;--crit:#E0765E;--crit-wash:#2E1712;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .app{max-width:1120px;margin:0 auto;padding:0 18px 80px}
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.15;margin:0}
+  .mono{font-family:var(--mono)}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  /* HEADER */
+  header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .hbar{max-width:1120px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:12px}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo .dot{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--accent-strong));display:grid;place-items:center;color:#fff;font-family:var(--mono);font-weight:700;font-size:12px}
+  .logo b{font-size:15px;letter-spacing:-.01em}
+  .logo span{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-top:-2px}
+  .demo-tag{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);border-radius:20px;padding:3px 9px}
+
+  .intro{padding:26px 0 12px}
+  .intro h1{font-size:clamp(1.7rem,4.5vw,2.4rem);letter-spacing:-.01em;max-width:20ch}
+  .intro p{color:var(--ink-soft);max-width:60ch;margin:.5em 0 0}
+  .intro .mini{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600}
+
+  .grid{display:grid;grid-template-columns:340px 1fr;gap:20px;margin-top:18px;align-items:start}
+  @media (max-width:840px){.grid{grid-template-columns:1fr}}
+
+  /* PANEL */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);position:sticky;top:64px}
+  @media (max-width:840px){.panel{position:static}}
+  .panel .ph{padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+  .panel .ph h3{font-size:1.05rem}
+  .panel .ph p{margin:3px 0 0;font-size:.8rem;color:var(--muted)}
+  .panel .pb{padding:16px 18px;display:flex;flex-direction:column;gap:15px}
+  .samples{display:flex;flex-wrap:wrap;gap:7px}
+  .samp{font-family:var(--mono);font-size:11px;border:1px solid var(--line-strong);background:var(--paper);color:var(--ink-soft);border-radius:20px;padding:6px 11px;cursor:pointer;transition:.15s}
+  .samp:hover{border-color:var(--accent);color:var(--accent-strong)}
+  .samp.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .field label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:600}
+  .field input,.field select{width:100%;font-family:var(--sans);font-size:.92rem;color:var(--ink);background:var(--paper);border:1px solid var(--line-strong);border-radius:9px;padding:9px 11px}
+  .field input:focus,.field select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .toggles{display:flex;flex-wrap:wrap;gap:7px}
+  .tg{font-size:12px;border:1px solid var(--line-strong);background:var(--paper);color:var(--ink-soft);border-radius:8px;padding:7px 10px;cursor:pointer;user-select:none;transition:.15s}
+  .tg.on{background:var(--accent-wash);border-color:var(--accent);color:var(--accent-strong);font-weight:600}
+  .btn{margin-top:2px;width:100%;background:var(--accent);color:#fff;border:0;border-radius:10px;padding:12px;font-family:var(--sans);font-weight:650;font-size:.95rem;cursor:pointer}
+  .btn:hover{background:var(--accent-strong)}
+
+  /* PASSPORT */
+  .pass{display:flex;flex-direction:column;gap:16px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+  .card .ch{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;background:var(--surface-2)}
+  .card .ch .ci{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:2px 6px}
+  .card .ch h3{font-size:1.08rem}
+  .card .ch .verif{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px}
+  .vf-ok{background:var(--good-wash);color:var(--good)} .vf-mat{background:var(--accent-wash);color:var(--accent-strong)} .vf-pend{background:var(--warn-wash);color:var(--warn)}
+  .card .cb{padding:18px 20px}
+
+  /* identity */
+  .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 20px}
+  .kv .k{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .kv .v{font-size:.98rem;color:var(--ink);margin-top:2px;font-weight:600}
+  .kv .v small{font-weight:400;color:var(--muted)}
+
+  /* valuation */
+  .val-top{display:flex;flex-wrap:wrap;gap:20px 30px;align-items:flex-end}
+  .val-main .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .val-main .big{font-family:var(--serif);font-size:2.7rem;font-weight:600;letter-spacing:-.02em;line-height:1;color:var(--accent)}
+  .val-main .rng{font-family:var(--mono);font-size:.85rem;color:var(--ink-soft);margin-top:7px}
+  .conf{min-width:140px}
+  .conf .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+  .conf .bar{height:8px;border-radius:6px;background:var(--surface-2);margin-top:7px;overflow:hidden}
+  .conf .bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--accent))}
+  .conf .cn{font-size:.8rem;color:var(--muted);margin-top:6px}
+  .rangebar{margin-top:18px}
+  .rangebar .track{position:relative;height:34px}
+  .rangebar .band{position:absolute;top:11px;height:12px;border-radius:8px;background:var(--accent-wash);border:1px solid var(--accent)}
+  .rangebar .cen{position:absolute;top:5px;width:2px;height:24px;background:var(--accent)}
+  .rangebar .cen::after{content:"";position:absolute;top:-4px;left:-4px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .rangebar .scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:2px}
+
+  /* waterfall */
+  .wf{margin-top:22px;display:flex;flex-direction:column;gap:2px}
+  .wf .wt{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .wf-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+  .wf-row:last-child{border-bottom:0}
+  .wf-row .wl{font-size:.9rem;color:var(--ink-soft)}
+  .wf-row .wl b{color:var(--ink);font-weight:600;display:block}
+  .wf-row .wl span{font-size:.78rem;color:var(--muted)}
+  .wf-row .wv{font-family:var(--mono);font-size:.9rem;font-weight:600;text-align:right;white-space:nowrap}
+  .wv.pos{color:var(--good)} .wv.neg{color:var(--crit)} .wv.base{color:var(--ink)}
+  .wf-row.total{border-top:2px solid var(--line-strong);border-bottom:0;margin-top:4px;padding-top:12px}
+  .wf-row.total .wl b{font-size:1rem} .wf-row.total .wv{font-size:1.05rem;color:var(--accent)}
+
+  /* comparables */
+  .comps{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .comp{border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--paper)}
+  .comp .cp{font-family:var(--serif);font-size:1.15rem;font-weight:600;color:var(--ink)}
+  .comp .cd{font-size:.76rem;color:var(--muted);margin-top:3px;line-height:1.4}
+  .comp .cm{font-family:var(--mono);font-size:10.5px;color:var(--accent-strong);margin-top:6px}
+  .mktrow{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .mktrow .mi .k{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .mktrow .mi .v{font-size:1.05rem;font-weight:600;font-variant-numeric:tabular-nums}
+
+  /* legal + flags */
+  .legal .kv{margin-bottom:4px}
+  .flags{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+  .flag{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border-radius:11px;border:1px solid var(--line)}
+  .flag .fi{width:20px;height:20px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;margin-top:1px}
+  .flag.ok{background:var(--good-wash);border-color:color-mix(in srgb,var(--good) 30%,transparent)} .flag.ok .fi{background:var(--good)}
+  .flag.warn{background:var(--warn-wash);border-color:color-mix(in srgb,var(--warn) 30%,transparent)} .flag.warn .fi{background:var(--warn)}
+  .flag.crit{background:var(--crit-wash);border-color:color-mix(in srgb,var(--crit) 30%,transparent)} .flag.crit .fi{background:var(--crit)}
+  .flag .fx b{font-size:.9rem;display:block} .flag .fx span{font-size:.82rem;color:var(--ink-soft)}
+
+  .srcnote{font-size:.78rem;color:var(--muted);background:var(--surface-2);border:1px dashed var(--line-strong);border-radius:12px;padding:13px 16px;line-height:1.5}
+  .srcnote b{color:var(--ink)}
+  .disclaimer{margin-top:26px;font-size:.75rem;color:var(--faint);text-align:center;line-height:1.5}
+  a{color:var(--accent-strong)}
+</style>
+
+<header>
+  <div class="hbar">
+    <div class="logo">
+      <div class="dot">CT</div>
+      <div><b>Claridad Total</b><span>Pasaporte del Inmueble</span></div>
+    </div>
+    <div class="demo-tag">Demo · Mendoza · datos de muestra</div>
+  </div>
+</header>
+
+<div class="app">
+  <div class="intro">
+    <div class="mini">MVP · Módulo 1</div>
+    <h1>El expediente que hoy lleva días, en segundos</h1>
+    <p>Elegí una propiedad de muestra o ajustá los atributos: el sistema arma la identificación catastral, valúa con lógica <strong>explicable</strong> (cada número con su porqué), revisa el estado legal y levanta las banderas rojas. Esto es lo que un comprador y un vendedor verían <strong>al mismo tiempo</strong>.</p>
+  </div>
+
+  <div class="grid">
+    <!-- PANEL -->
+    <aside class="panel">
+      <div class="ph"><h3>Propiedad</h3><p>Cargá un caso o modificá los datos y recalculá.</p></div>
+      <div class="pb">
+        <div class="field">
+          <label>Casos de muestra (Gran Mendoza)</label>
+          <div class="samples" id="samples"></div>
+        </div>
+        <div class="field"><label>Padrón / Nomenclatura catastral</label><input id="padron" type="text" value="01-01-05-0023-000012"></div>
+        <div class="row2">
+          <div class="field"><label>Departamento</label>
+            <select id="zona">
+              <option value="ciudad_q5">Ciudad · Quinta Sección</option>
+              <option value="ciudad_centro">Ciudad · Centro</option>
+              <option value="godoy_cruz">Godoy Cruz</option>
+              <option value="lujan_chacras">Luján · Chacras de Coria</option>
+              <option value="maipu">Maipú</option>
+              <option value="guaymallen">Guaymallén</option>
+            </select>
+          </div>
+          <div class="field"><label>Tipo</label>
+            <select id="tipo"><option value="depto">Departamento</option><option value="casa">Casa</option></select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Sup. cubierta (m²)</label><input id="cub" type="number" value="72"></div>
+          <div class="field"><label>Sup. total lote (m²)</label><input id="tot" type="number" value="72"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Dormitorios</label><input id="dorm" type="number" value="2"></div>
+          <div class="field"><label>Antigüedad (años)</label><input id="anti" type="number" value="12"></div>
+        </div>
+        <div class="field"><label>Estado de conservación</label>
+          <select id="estado">
+            <option value="1.06">Excelente / a estrenar</option>
+            <option value="1.03">Muy bueno</option>
+            <option value="1.00" selected>Bueno</option>
+            <option value="0.92">Regular</option>
+            <option value="0.82">A refaccionar</option>
+          </select>
+        </div>
+        <div class="field"><label>Características</label>
+          <div class="toggles" id="feats">
+            <span class="tg" data-f="cochera">Cochera</span>
+            <span class="tg" data-f="pileta">Pileta</span>
+            <span class="tg" data-f="patio">Patio / jardín</span>
+            <span class="tg" data-f="luminoso">Luminoso / piso alto</span>
+            <span class="tg" data-f="amenities">Amenities edificio</span>
+          </div>
+        </div>
+        <div class="field"><label>Estado dominial simulado</label>
+          <select id="legal">
+            <option value="limpio">Título limpio, sin gravámenes</option>
+            <option value="hipoteca">Hipoteca vigente</option>
+            <option value="embargo">Embargo / litigio</option>
+            <option value="deuda">Deuda de expensas / inmobiliario</option>
+          </select>
+        </div>
+        <button class="btn" id="calc">Generar pasaporte</button>
+      </div>
+    </aside>
+
+    <!-- PASSPORT -->
+    <main class="pass" id="pass"></main>
+  </div>
+
+  <p class="disclaimer">Prototipo demostrativo. Los valores, titulares y estados dominiales son <strong>simulados</strong> con parámetros realistas de Mendoza (2025) para ilustrar la lógica del producto. En producción, cada dato se obtiene y verifica de su fuente oficial (ATM/Catastro, IDE, Registro de la Propiedad vía corredor matriculado, portales).</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  // ---------- Parámetros de mercado (USD) — calibración de muestra Mendoza 2025 ----------
+  var ZONAS = {
+    ciudad_q5:{n:"Ciudad · Quinta Sección", m2:1520, terr:620, dom:"días 45"},
+    ciudad_centro:{n:"Ciudad · Centro", m2:1260, terr:430},
+    godoy_cruz:{n:"Godoy Cruz", m2:1150, terr:360},
+    lujan_chacras:{n:"Luján · Chacras de Coria", m2:1320, terr:470},
+    maipu:{n:"Maipú", m2:960, terr:300},
+    guaymallen:{n:"Guaymallén", m2:900, terr:290}
+  };
+  var GAP_CIERRE = 0.12; // los cierres cierran ~12% bajo el precio de oferta
+  var fmt = function(n){ return "US$ " + Math.round(n).toLocaleString("es-AR"); };
+  var fmt0 = function(n){ return Math.round(n).toLocaleString("es-AR"); };
+  var signed = function(n){ return (n>=0?"+":"−") + fmt(Math.abs(n)).replace("US$ ","US$ "); };
+
+  // ---------- Casos de muestra ----------
+  var SAMPLES = [
+    {id:"A", label:"Depto 2amb · Ciudad Q5", padron:"01-01-05-0023-000012", zona:"ciudad_q5", tipo:"depto", cub:58, tot:58, dorm:2, anti:8, estado:"1.03", feats:["luminoso","cochera","amenities"], legal:"limpio"},
+    {id:"B", label:"Casa · Maipú c/ deuda", padron:"07-04-11-0102-000045", zona:"maipu", tipo:"casa", cub:135, tot:320, dorm:3, anti:22, estado:"1.00", feats:["cochera","patio"], legal:"deuda"},
+    {id:"C", label:"Casa · Chacras c/ hipoteca", padron:"06-03-08-0210-000007", zona:"lujan_chacras", tipo:"casa", cub:180, tot:600, dorm:4, anti:6, estado:"1.06", feats:["cochera","patio","pileta"], legal:"hipoteca"},
+    {id:"D", label:"Depto · Godoy Cruz a refacc.", padron:"03-02-04-0055-000031", zona:"godoy_cruz", tipo:"depto", cub:64, tot:64, dorm:2, anti:38, estado:"0.82", feats:[], legal:"embargo"}
+  ];
+
+  var TITULARES = ["Rossi, María L.","Fernández, Jorge A.","Sucesión Gómez","Pérez Vega, S.A.","Luján Bienes SRL"];
+
+  // ---------- Motor de valuación explicable ----------
+  function valuar(p){
+    var z = ZONAS[p.zona];
+    var steps = [];
+    // Base: m² cubiertos × USD/m² de zona
+    var base = p.cub * z.m2;
+    steps.push({label:"Base por superficie", detail: fmt0(p.cub)+" m² × "+fmt(z.m2)+"/m² ("+z.n+")", val:base, type:"base"});
+
+    // Antigüedad
+    var antiF = p.anti<=2?0.05 : p.anti<=10?0.00 : p.anti<=30?-0.06 : p.anti<=50?-0.12 : -0.18;
+    var antiD = base*antiF;
+    if(antiF!==0) steps.push({label:"Antigüedad", detail:p.anti+" años ("+(antiF>0?"+":"")+Math.round(antiF*100)+"%)", val:antiD, type: antiF>0?"pos":"neg"});
+
+    // Estado de conservación
+    var estF = parseFloat(p.estado)-1;
+    var estD = base*estF;
+    if(estF!==0) steps.push({label:"Estado de conservación", detail:(estF>0?"+":"")+Math.round(estF*100)+"% s/ base", val:estD, type: estF>0?"pos":"neg"});
+
+    // Patio / terreno excedente (casas)
+    if(p.tipo==="casa" && p.tot>p.cub){
+      var exc = (p.tot - p.cub);
+      var terrD = exc * z.terr * 0.45; // el terreno descubierto aporta al 45% de su valor unitario
+      steps.push({label:"Terreno / patio", detail:fmt0(exc)+" m² descubiertos × "+fmt(z.terr)+"/m² × 0,45", val:terrD, type:"pos"});
+    }
+
+    // Features de suma fija / porcentual
+    var has = function(f){ return p.feats.indexOf(f)>=0; };
+    if(has("cochera")){ var c = p.tipo==="casa"?8500:6500; steps.push({label:"Cochera", detail:"valor de mercado", val:c, type:"pos"}); }
+    if(has("pileta")){ steps.push({label:"Pileta", detail:"amenity", val:6000, type:"pos"}); }
+    if(has("luminoso")){ var l=base*0.03; steps.push({label:"Luminosidad / piso alto", detail:"+3% s/ base", val:l, type:"pos"}); }
+    if(has("amenities")){ var a=base*0.04; steps.push({label:"Amenities del edificio", detail:"+4% s/ base", val:a, type:"pos"}); }
+    if(has("patio") && p.tipo==="depto"){ steps.push({label:"Patio / terraza", detail:"unidad c/ expansión", val:4500, type:"pos"}); }
+
+    var valor = steps.reduce(function(s,x){return s+x.val;},0);
+
+    // ---------- Confianza según comparables ----------
+    // Simulamos densidad de comparables por zona/tipo
+    var nComps = ({ciudad_q5:12, ciudad_centro:14, godoy_cruz:11, lujan_chacras:7, maipu:9, guaymallen:8})[p.zona] || 8;
+    if(p.tipo==="casa") nComps = Math.max(5, nComps-3);
+    var conf = Math.min(0.92, 0.5 + nComps*0.03); // 0..1
+    var disp = 0.10 - (conf-0.5)*0.06; // dispersión inversamente proporcional a confianza
+    var half = valor*(0.05 + disp); // semiancho del rango
+    var low = valor-half, high = valor+half;
+
+    // Precio de oferta sugerido (por encima del valor de cierre estimado)
+    var oferta = valor/(1-GAP_CIERRE);
+
+    // ---------- Comparables simulados alrededor del valor ----------
+    var comps = [];
+    var seed = (p.cub*7 + p.anti*13 + p.dorm*3);
+    var jitter = [0.94,1.07,0.99,1.12,0.90];
+    for(var i=0;i<Math.min(4, nComps);i++){
+      var f = jitter[(i+seed)%jitter.length];
+      var cval = oferta*f;
+      comps.push({ price:cval, m2:(cval/p.cub), d: ["mismo barrio","a 3 cuadras","barrio contiguo","misma tipología"][i], dias: 20+((seed*i+i)%90) });
+    }
+
+    return {z:z, steps:steps, valor:valor, low:low, high:high, oferta:oferta, conf:conf, nComps:nComps, comps:comps, ppm: valor/p.cub};
+  }
+
+  // ---------- Estado legal ----------
+  function legalInfo(kind, seed){
+    var titular = TITULARES[seed % TITULARES.length];
+    var base = { titular:titular, dominio:"Folio Real · Matrícula "+ (10000+seed*7) +"/"+ (Math.floor(seed/3)+1) };
+    if(kind==="limpio") return Object.assign(base,{estado:"Sin gravámenes", flags:[
+      {t:"ok",b:"Título limpio",s:"El Informe Nº1 no registra hipotecas, embargos ni inhibiciones."},
+      {t:"ok",b:"Sin deudas informadas",s:"Inmobiliario ATM y expensas al día según consulta."},
+      {t:"mat",b:"Verificación de titularidad pendiente de firma",s:"El corredor matriculado valida identidad del titular contra el Registro."}
+    ]});
+    if(kind==="hipoteca") return Object.assign(base,{estado:"Hipoteca vigente", flags:[
+      {t:"warn",b:"Hipoteca en 1° grado",s:"Existe gravamen a favor de entidad financiera. Debe cancelarse o subrogarse antes de escriturar."},
+      {t:"ok",b:"Sin embargos ni litigios",s:"No se registran medidas cautelares."},
+      {t:"mat",b:"Requiere certificado de saldo deudor",s:"El matriculado gestiona el informe de deuda para calcular el neto al vendedor."}
+    ]});
+    if(kind==="embargo") return Object.assign(base,{estado:"Embargo / litigio", flags:[
+      {t:"crit",b:"Embargo registrado",s:"Medida cautelar vigente. Operación bloqueada hasta su levantamiento. BANDERA ROJA."},
+      {t:"warn",b:"Antigüedad elevada + estado a refaccionar",s:"Riesgo de valuación: pocos comparables comparables directos."},
+      {t:"mat",b:"No avanzar sin dictamen legal",s:"El matriculado y un abogado deben evaluar viabilidad antes de cualquier seña."}
+    ]});
+    return Object.assign(base,{estado:"Deudas pendientes", flags:[
+      {t:"warn",b:"Deuda de inmobiliario / expensas",s:"Existe deuda que impacta el neto de la operación. Cuantificable y saneable."},
+      {t:"ok",b:"Título sin gravámenes",s:"No hay hipotecas ni embargos registrados."},
+      {t:"mat",b:"Verificar libre deuda municipal",s:"El matriculado solicita los certificados para el cierre."}
+    ]});
+  }
+
+  // ---------- Render ----------
+  function el(html){ var d=document.createElement("div"); d.innerHTML=html.trim(); return d.firstChild; }
+
+  function render(){
+    var p = readForm();
+    var v = valuar(p);
+    var seed = Math.round(p.cub + p.anti + p.dorm + p.padron.replace(/\D/g,"").slice(-3)*1);
+    var L = legalInfo(p.legal, isNaN(seed)?7:seed);
+    var pass = document.getElementById("pass");
+    pass.innerHTML = "";
+
+    // 1 · Identidad
+    pass.appendChild(el(
+      '<section class="card"><div class="ch"><span class="ci">01</span><h3>Identificación catastral</h3><span class="verif vf-ok">✓ Fuente ATM/IDE</span></div><div class="cb"><div class="kv">'+
+      kv("Padrón / Nomenclatura", p.padron)+
+      kv("Ubicación", v.z.n)+
+      kv("Tipo", p.tipo==="casa"?"Casa":"Departamento")+
+      kv("Sup. cubierta", fmt0(p.cub)+" m²")+
+      kv("Sup. total lote", fmt0(p.tot)+" m²")+
+      kv("Dormitorios", p.dorm)+
+      kv("Antigüedad", p.anti+" años")+
+      kv("Avalúo fiscal (ref.)", fmt(v.valor*0.28)+" <small>aprox.</small>")+
+      '</div></div></section>'));
+
+    // 2 · Valuación explicable
+    var wf = v.steps.map(function(s){
+      return '<div class="wf-row"><div class="wl"><b>'+s.label+'</b><span>'+s.detail+'</span></div>'+
+             '<div class="wv '+(s.type==="base"?"base":s.type)+'">'+(s.type==="base"?fmt(s.val):signed(s.val))+'</div></div>';
+    }).join("");
+    var confPct = Math.round(v.conf*100);
+    var pass2 = el(
+      '<section class="card"><div class="ch"><span class="ci">02</span><h3>Valuación explicable</h3><span class="verif vf-pend">estimación · rango</span></div><div class="cb">'+
+      '<div class="val-top">'+
+        '<div class="val-main"><div class="lbl">Valor estimado de cierre</div><div class="big">'+fmt(v.valor)+'</div>'+
+          '<div class="rng">Rango probable '+fmt(v.low)+' — '+fmt(v.high)+' · '+fmt(v.ppm)+'/m²</div></div>'+
+        '<div class="conf"><div class="lbl"><span>Confianza</span><span>'+confPct+'%</span></div>'+
+          '<div class="bar"><i style="width:'+confPct+'%"></i></div>'+
+          '<div class="cn">'+v.nComps+' comparables · '+(v.conf>0.8?"alta":v.conf>0.65?"media":"baja")+' densidad de mercado</div></div>'+
+      '</div>'+
+      rangebar(v)+
+      '<div class="wf"><div class="wt">Cómo se construye el número</div>'+wf+
+        '<div class="wf-row total"><div class="wl"><b>Valor estimado de cierre</b><span>suma de los factores anteriores</span></div><div class="wv">'+fmt(v.valor)+'</div></div>'+
+        '<div class="wf-row"><div class="wl"><b>Precio de oferta sugerido</b><span>+'+Math.round(GAP_CIERRE*100)+'% · brecha oferta/cierre típica en Mendoza</span></div><div class="wv base">'+fmt(v.oferta)+'</div></div>'+
+      '</div></div></section>');
+    pass.appendChild(pass2);
+
+    // 3 · Mercado / comparables
+    var comps = v.comps.map(function(c){
+      return '<div class="comp"><div class="cp">'+fmt(c.price)+'</div><div class="cd">'+c.d+' · '+c.dias+' días publicado</div><div class="cm">'+fmt(c.m2)+'/m²</div></div>';
+    }).join("");
+    pass.appendChild(el(
+      '<section class="card"><div class="ch"><span class="ci">03</span><h3>Contexto de mercado</h3><span class="verif vf-pend">oferta · portales</span></div><div class="cb">'+
+      '<div class="comps">'+comps+'</div>'+
+      '<div class="mktrow">'+
+        mi("USD/m² de zona", fmt(v.z.m2))+
+        mi("Brecha oferta→cierre", "−"+Math.round(GAP_CIERRE*100)+"%")+
+        mi("Comparables activos", v.nComps)+
+      '</div></div></section>'));
+
+    // 4 · Estado legal
+    var flags = L.flags.map(function(f){
+      var ic = f.t==="ok"?"✓":f.t==="crit"?"!":f.t==="mat"?"§":"!";
+      var cls = f.t==="mat"?"warn":f.t;
+      return '<div class="flag '+cls+'"><div class="fi">'+ic+'</div><div class="fx"><b>'+f.b+'</b><span>'+f.s+'</span></div></div>';
+    }).join("");
+    pass.appendChild(el(
+      '<section class="card legal"><div class="ch"><span class="ci">04</span><h3>Estado dominial y legal</h3><span class="verif vf-mat">§ vía matriculado · Registro</span></div><div class="cb">'+
+      '<div class="kv">'+kv("Titular registral", L.titular)+kv("Dominio", L.dominio)+kv("Situación", L.estado)+'</div>'+
+      '<div class="flags">'+flags+'</div></div></section>'));
+
+    // 5 · Nota de fuentes
+    pass.appendChild(el('<div class="srcnote"><b>De dónde sale cada dato en producción.</b> Identificación y avalúo: <b>ATM · Dirección de Catastro</b> + <b>IDE Mendoza</b>. Comparables: portales (oferta) + operaciones propias (cierre). Estado dominial: <b>Informe Nº1 del Registro de la Propiedad Raíz</b>, accesible solo a través del <b>corredor matriculado</b> de la red — la pieza que un particular no puede pedir sobre terceros y que vuelve verificable al pasaporte.</div>'));
+  }
+
+  function rangebar(v){
+    var lo = v.low*0.96, hi = v.high*1.04, span = hi-lo;
+    var bl = ((v.low-lo)/span)*100, bw = ((v.high-v.low)/span)*100, cp = ((v.valor-lo)/span)*100;
+    return '<div class="rangebar"><div class="track">'+
+      '<div class="band" style="left:'+bl+'%;width:'+bw+'%"></div>'+
+      '<div class="cen" style="left:'+cp+'%"></div></div>'+
+      '<div class="scale"><span>'+fmt(lo)+'</span><span>'+fmt(hi)+'</span></div></div>';
+  }
+  function kv(k,val){ return '<div><div class="k">'+k+'</div><div class="v">'+val+'</div></div>'; }
+  function mi(k,val){ return '<div class="mi"><div class="k">'+k+'</div><div class="v tnum">'+val+'</div></div>'; }
+
+  // ---------- Form wiring ----------
+  function readForm(){
+    var feats = [].slice.call(document.querySelectorAll("#feats .tg.on")).map(function(t){return t.dataset.f;});
+    return {
+      padron:val("padron"), zona:val("zona"), tipo:val("tipo"),
+      cub:+val("cub")||1, tot:+val("tot")||+val("cub")||1, dorm:+val("dorm")||1, anti:+val("anti")||0,
+      estado:val("estado"), feats:feats, legal:val("legal")
+    };
+  }
+  function val(id){ return document.getElementById(id).value; }
+  function setVal(id,v){ document.getElementById(id).value = v; }
+
+  function loadSample(s){
+    setVal("padron",s.padron); setVal("zona",s.zona); setVal("tipo",s.tipo);
+    setVal("cub",s.cub); setVal("tot",s.tot); setVal("dorm",s.dorm); setVal("anti",s.anti);
+    setVal("estado",s.estado); setVal("legal",s.legal);
+    [].forEach.call(document.querySelectorAll("#feats .tg"),function(t){ t.classList.toggle("on", s.feats.indexOf(t.dataset.f)>=0); });
+    [].forEach.call(document.querySelectorAll(".samp"),function(b){ b.classList.toggle("active", b.dataset.id===s.id); });
+    render();
+  }
+
+  // Build sample chips
+  var sc = document.getElementById("samples");
+  SAMPLES.forEach(function(s){
+    var b = el('<span class="samp" data-id="'+s.id+'">'+s.label+'</span>');
+    b.addEventListener("click",function(){ loadSample(s); });
+    sc.appendChild(b);
+  });
+  // Toggles
+  [].forEach.call(document.querySelectorAll("#feats .tg"),function(t){
+    t.addEventListener("click",function(){ t.classList.toggle("on"); });
+  });
+  document.getElementById("calc").addEventListener("click",render);
+  // Recalc on change
+  ["zona","tipo","cub","tot","dorm","anti","estado","legal","padron"].forEach(function(id){
+    document.getElementById(id).addEventListener("change",render);
+  });
+
+  loadSample(SAMPLES[0]);
+})();
+</script>

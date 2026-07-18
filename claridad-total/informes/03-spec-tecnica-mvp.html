@@ -1,0 +1,270 @@
+<title>Claridad Total · Especificación técnica del MVP</title>
+<style>
+  :root{
+    --paper:#F6F7F9;--surface:#FFFFFF;--surface-2:#EFF2F5;--ink:#161D26;--ink-soft:#3E4956;--muted:#6B7683;--faint:#9AA4AE;--line:#E1E6EB;--line-strong:#CDD5DC;--accent:#0C7C8C;--accent-strong:#095B67;--accent-wash:#E4F1F2;--gold:#9C6A15;--gold-wash:#F3EBDA;--good:#2E7D5B;--warn:#9A6A12;--crit:#B23F2A;
+    --shadow:0 1px 2px rgba(20,29,38,.05),0 8px 24px rgba(20,29,38,.06);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:"SF Mono","JetBrains Mono",ui-monospace,"Roboto Mono",Menlo,Consolas,monospace;
+    --measure:70ch;
+  }
+  @media (prefers-color-scheme:dark){:root{--paper:#0E1319;--surface:#151C24;--surface-2:#1B242D;--ink:#EAEEF2;--ink-soft:#B9C3CD;--muted:#8A95A0;--faint:#5E6974;--line:#25303A;--line-strong:#33404B;--accent:#3FC1D2;--accent-strong:#6FD6E3;--accent-wash:#123038;--gold:#D9A34C;--gold-wash:#2A2317;--good:#4FB88A;--warn:#D2A24A;--crit:#E0765E;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35)}}
+  :root[data-theme="light"]{--paper:#F6F7F9;--surface:#FFFFFF;--surface-2:#EFF2F5;--ink:#161D26;--ink-soft:#3E4956;--muted:#6B7683;--faint:#9AA4AE;--line:#E1E6EB;--line-strong:#CDD5DC;--accent:#0C7C8C;--accent-strong:#095B67;--accent-wash:#E4F1F2;--gold:#9C6A15;--gold-wash:#F3EBDA;--good:#2E7D5B;--warn:#9A6A12;--crit:#B23F2A;--shadow:0 1px 2px rgba(20,29,38,.05),0 8px 24px rgba(20,29,38,.06)}
+  :root[data-theme="dark"]{--paper:#0E1319;--surface:#151C24;--surface-2:#1B242D;--ink:#EAEEF2;--ink-soft:#B9C3CD;--muted:#8A95A0;--faint:#5E6974;--line:#25303A;--line-strong:#33404B;--accent:#3FC1D2;--accent-strong:#6FD6E3;--accent-wash:#123038;--gold:#D9A34C;--gold-wash:#2A2317;--good:#4FB88A;--warn:#D2A24A;--crit:#E0765E;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35)}
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--measure);margin:0 auto;padding:0 22px}
+  .wide{max-width:1080px;margin:0 auto;padding:0 22px}
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.15;text-wrap:balance;color:var(--ink);margin:0}
+  p{margin:0 0 1em}
+  a{color:var(--accent-strong)}
+  strong{font-weight:650;color:var(--ink)}
+  code,.mono{font-family:var(--mono)}
+  code{font-size:.86em;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);background:radial-gradient(120% 90% at 88% -10%,var(--accent-wash) 0%,transparent 55%),linear-gradient(180deg,var(--surface),var(--paper))}
+  .hero .gl{position:absolute;inset:0;opacity:.5;pointer-events:none;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(120% 80% at 80% 0%,#000 0%,transparent 62%)}
+  .hero-inner{position:relative;max-width:1080px;margin:0 auto;padding:58px 22px 48px}
+  .kicker{font-family:var(--mono);font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+  .kicker b{color:var(--accent);font-weight:600}
+  .hero h1{font-size:clamp(2.1rem,5.5vw,3.6rem);letter-spacing:-.01em;margin:.35em 0 .3em;max-width:18ch}
+  .hero .sub{font-size:clamp(1.05rem,2.2vw,1.3rem);color:var(--ink-soft);max-width:54ch;font-family:var(--serif);font-style:italic}
+  section{padding:48px 0}
+  .sec-head{margin-bottom:22px}
+  .sec-head .num{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.14em;font-weight:600}
+  .sec-head h2{font-size:clamp(1.6rem,4vw,2.3rem);margin:.15em 0 .1em}
+  .sec-head .dek{color:var(--muted);max-width:62ch}
+  hr.rule{border:0;border-top:1px solid var(--line);margin:0}
+  .band{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  h3{font-size:1.3rem;margin:26px 0 10px} h4{font-size:1.1rem;margin:18px 0 6px}
+  ul{margin:0 0 1em;padding-left:1.1em} li{margin-bottom:.4em}
+  .callout{border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0;box-shadow:var(--shadow)}
+  .callout.gold{border-left-color:var(--gold)}
+  .callout .tag{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:6px;display:block}
+  .callout.gold .tag{color:var(--gold)} .callout p:last-child{margin-bottom:0}
+
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;margin:20px 0;box-shadow:var(--shadow)}
+  table{border-collapse:collapse;width:100%;min-width:600px;font-size:.88em}
+  th,td{text-align:left;padding:12px 15px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{background:var(--surface-2);font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  tbody tr:last-child td{border-bottom:0}
+  tbody td:first-child{font-weight:600;color:var(--ink)}
+  .pill{font-family:var(--mono);font-size:10.5px;padding:2px 8px;border-radius:20px;white-space:nowrap}
+  .p-v1{background:var(--accent-wash);color:var(--accent-strong)} .p-v2{background:var(--gold-wash);color:var(--gold)}
+
+  /* architecture diagram */
+  .arch{display:grid;gap:12px;margin:8px 0}
+  .tier{border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+  .tier .th{padding:11px 18px;background:var(--surface-2);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:11px}
+  .tier .th .tn{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:2px 7px}
+  .tier .th h4{margin:0;font-size:1.05rem}
+  .tier .tb{padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+  .box{border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:var(--paper)}
+  .box .bn{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:4px}
+  .box p{margin:0;font-size:.82em;color:var(--ink-soft)}
+  .flowarrow{text-align:center;color:var(--faint);font-family:var(--mono);font-size:12px;margin:-4px 0}
+
+  pre{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--ink-soft);box-shadow:var(--shadow)}
+  pre .k{color:var(--accent-strong);font-weight:600} pre .c{color:var(--faint)} pre .s{color:var(--gold)}
+
+  .stack{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:8px}
+  .sc{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:15px 17px;box-shadow:var(--shadow)}
+  .sc .sl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .sc .sv{font-weight:650;font-size:.98rem} .sc p{margin:5px 0 0;font-size:.83em;color:var(--ink-soft)}
+
+  .road{display:grid;gap:0;margin-top:8px;border-left:2px solid var(--line-strong)}
+  .phase{position:relative;padding:0 0 24px 26px}
+  .phase::before{content:"";position:absolute;left:-7px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);box-shadow:0 0 0 2px var(--accent)}
+  .phase:last-child{padding-bottom:0}
+  .phase .pt{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .phase h4{margin:3px 0 5px;font-size:1.15rem} .phase p{margin:0;font-size:.9em;color:var(--ink-soft)}
+  .phase ul{margin:8px 0 0;font-size:.88em;color:var(--ink-soft)}
+
+  footer{border-top:1px solid var(--line);padding:36px 0 54px;color:var(--muted);font-size:.85em}
+  footer .wide{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+  .note{font-family:var(--mono);font-size:.82em;color:var(--faint)}
+  @media (max-width:640px){body{font-size:16px};.hero-inner{padding:40px 22px 34px}}
+  @media print{:root{--paper:#fff;--surface:#fff}body{font-size:11.5pt}.hero .gl{display:none}section{padding:18px 0;break-inside:avoid}.callout,.tier,.sc,pre{box-shadow:none}a{color:var(--ink);text-decoration:none}}
+</style>
+
+<div class="hero"><div class="gl"></div><div class="hero-inner">
+  <div class="kicker"><b>Especificación técnica</b> <span>·</span> MVP · Módulo 1 <span>·</span> Julio 2026</div>
+  <h1>El MVP técnico del Pasaporte del Inmueble</h1>
+  <p class="sub">De un prototipo funcional a un sistema de producción: arquitectura, pipeline de datos, motor de valuación, capa de IA y plan de construcción a 12 semanas.</p>
+</div></div>
+
+<div class="wrap">
+  <section id="alcance">
+    <div class="sec-head"><div class="num">01 · ALCANCE</div><h2>Qué construimos primero (y qué no)</h2></div>
+    <p>El MVP no es la plataforma entera: es <strong>un solo módulo que ya genera valor</strong> —el Pasaporte del Inmueble— usado internamente por el corredor matriculado fundador. El objetivo de la v1 es probar que podemos <strong>generar automáticamente un expediente verificado y una valuación explicable</strong> a partir de fuentes reales, y empezar a acumular el dataset propietario de operaciones.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>En el MVP (v1)</th><th>Deliberadamente afuera (después)</th></tr></thead>
+      <tbody>
+        <tr><td>Generación del pasaporte por padrón/dirección</td><td>Portal público al consumidor final</td></tr>
+        <tr><td>Ingesta ATM/Catastro + IDE + portales</td><td>Escrow / custodia de fondos</td></tr>
+        <tr><td>Estado dominial vía matriculado (semi-manual)</td><td>Firma digital / escrituración</td></tr>
+        <tr><td>Motor de valuación heurístico explicable</td><td>Modelo ML entrenado (llega en v2)</td></tr>
+        <tr><td>Asistente IA de lectura del expediente</td><td>Agente de negociación autónomo</td></tr>
+        <tr><td>Registro de operaciones (semilla del dataset)</td><td>Matching comprador/vendedor a escala</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout"><span class="tag">Criterio de éxito de la v1</span><p>Que el corredor genere un pasaporte completo y confiable en <strong>&lt; 5 minutos</strong> (vs. días hoy), que la valuación caiga dentro de <strong>±10%</strong> del precio de cierre real en el 80% de los casos del wedge, y que cada operación cerrada quede registrada como dato estructurado.</p></div>
+  </section>
+</div>
+
+<hr class="rule">
+
+<div class="band"><div class="wide"><section id="arquitectura">
+  <div class="sec-head"><div class="num">02 · ARQUITECTURA</div><h2>Arquitectura del sistema</h2>
+  <p class="dek">Cuatro capas. El dato entra crudo, se normaliza en una entidad canónica de inmueble, se le calcula valor y estado, y se sirve como un pasaporte consultable por IA.</p></div>
+
+  <div class="arch">
+    <div class="tier"><div class="th"><span class="tn">CAPA A</span><h4>Ingesta — conectores a fuentes</h4></div>
+      <div class="tb">
+        <div class="box"><div class="bn">Catastro ATM</div><p>Scraper/consulta de parcela, avalúo fiscal, características.</p></div>
+        <div class="box"><div class="bn">IDE Mendoza</div><p>Capas WMS/WFS georreferenciadas, parcelario 2021–2025.</p></div>
+        <div class="box"><div class="bn">Portales</div><p>Scrapers de oferta (Zonaprop, Argenprop, Inmoup, MELI).</p></div>
+        <div class="box"><div class="bn">Registro (Informe Nº1)</div><p>Ingreso semi-manual del matriculado vía SAYGES.</p></div>
+        <div class="box"><div class="bn">Operaciones propias</div><p>Cierres cargados por el corredor = dato de oro.</p></div>
+      </div>
+    </div>
+    <div class="flowarrow">▼ normalización + geocodificación + deduplicación</div>
+    <div class="tier"><div class="th"><span class="tn">CAPA B</span><h4>Núcleo de datos — la entidad canónica "Inmueble"</h4></div>
+      <div class="tb">
+        <div class="box"><div class="bn">PostgreSQL + PostGIS</div><p>Inmuebles, parcelas, operaciones, comparables (geoespacial).</p></div>
+        <div class="box"><div class="bn">Object storage</div><p>Documentos: informes, planos, fotos, PDFs de origen.</p></div>
+        <div class="box"><div class="bn">Vector store</div><p>Embeddings del expediente para el asistente IA (RAG).</p></div>
+        <div class="box"><div class="bn">Audit log</div><p>Cada dato → su fuente, fecha y quién lo verificó.</p></div>
+      </div>
+    </div>
+    <div class="flowarrow">▼ cálculo</div>
+    <div class="tier"><div class="th"><span class="tn">CAPA C</span><h4>Servicios — la lógica de negocio</h4></div>
+      <div class="tb">
+        <div class="box"><div class="bn">Motor de valuación</div><p>Heurístico explicable (v1) → hedónico/ML (v2).</p></div>
+        <div class="box"><div class="bn">Analizador legal</div><p>Parsea el Informe Nº1, detecta gravámenes, arma banderas.</p></div>
+        <div class="box"><div class="bn">Comparables</div><p>Selección geoespacial + ajuste por atributos.</p></div>
+        <div class="box"><div class="bn">Capa de IA/agentes</div><p>LLM sobre el expediente: explica, resume, responde.</p></div>
+      </div>
+    </div>
+    <div class="flowarrow">▼ API</div>
+    <div class="tier"><div class="th"><span class="tn">CAPA D</span><h4>Aplicación — lo que usa el corredor</h4></div>
+      <div class="tb">
+        <div class="box"><div class="bn">API REST/GraphQL</div><p>Backend tipado, autenticación por rol.</p></div>
+        <div class="box"><div class="bn">Web app</div><p>El prototipo que ya viste, conectado a datos reales.</p></div>
+        <div class="box"><div class="bn">Export PDF</div><p>Pasaporte imprimible para cliente / expediente.</p></div>
+      </div>
+    </div>
+  </div>
+</section></div></div>
+
+<div class="wrap"><section id="datos">
+  <div class="sec-head"><div class="num">03 · DATOS</div><h2>Pipeline e ingesta</h2>
+  <p class="dek">El corazón del proyecto. La estrategia es: automatizar lo automatizable, hacer semi-manual lo que requiere al matriculado, y capturar cada cierre.</p></div>
+
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Fuente</th><th>Método técnico</th><th>Frecuencia</th></tr></thead>
+    <tbody>
+      <tr><td>ATM · Catastro</td><td>Consulta por padrón/nomenclatura; parsing HTML/PDF; OCR si hace falta</td><td>On-demand por inmueble</td></tr>
+      <tr><td>IDE Mendoza</td><td>Servicios OGC (WFS/WMS) + descarga de datasets abiertos a PostGIS</td><td>Batch mensual</td></tr>
+      <tr><td>Portales de oferta</td><td>Scrapers programados (Playwright), normalización y geocoding de avisos</td><td>Diario/semanal</td></tr>
+      <tr><td>Registro · Informe Nº1</td><td>El matriculado descarga; el sistema parsea el PDF y extrae dominio/gravámenes</td><td>On-demand por operación</td></tr>
+      <tr><td>Cierres propios</td><td>Formulario estructurado que completa el corredor al cerrar</td><td>Por operación</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout gold"><span class="tag">Lo legalmente sensible, bien encuadrado</span>
+  <p>El acceso al Registro de la Propiedad Raíz está reservado al profesional habilitado. El sistema <strong>nunca simula ser el matriculado</strong>: le da una herramienta para que <em>él</em> gestione el informe y luego lo digitaliza y estructura. Igual con datos personales del titular: se tratan bajo la Ley 25.326 de Protección de Datos, con acceso por rol y registro de auditoría.</p></div>
+
+  <h3>La entidad canónica</h3>
+  <p>Todo converge en un objeto <code>Inmueble</code> versionado, con procedencia por campo:</p>
+<pre><span class="c">// Esquema simplificado de la entidad canónica</span>
+<span class="k">Inmueble</span> {
+  id, padron, nomenclatura, geom(<span class="s">Point</span>),
+  ubicacion { departamento, distrito, barrio },
+  fisico { tipo, sup_cubierta, sup_total, dormitorios, antiguedad, estado },
+  fiscal { avaluo, deuda_inmobiliario },
+  legal { titular, matricula, gravamenes[], fuente:<span class="s">"informe_n1"</span>, verificado_por },
+  valuacion { valor, rango[low,high], confianza, factores[], modelo_version },
+  comparables[], operacion?, procedencia { <span class="c">campo → {fuente, fecha, hash}</span> }
+}</pre>
+</section></div>
+
+<div class="band"><div class="wrap"><section id="valuacion">
+  <div class="sec-head"><div class="num">04 · VALUACIÓN</div><h2>El motor de valuación explicable</h2>
+  <p class="dek">De la heurística transparente que ya funciona (la del prototipo) a un modelo estadístico —sin perder nunca la explicabilidad, que es requisito de producto y de regulación.</p></div>
+
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Versión</th><th>Enfoque</th><th>Cuándo</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-v1">v1 · Heurístico</span></td><td>Modelo aditivo: base USD/m² por zona + factores por antigüedad, estado, features y ajuste legal. 100% explicable, calibrable a mano.</td><td>MVP · ya prototipado</td></tr>
+      <tr><td><span class="pill p-v2">v2 · Hedónico</span></td><td>Regresión hedónica / gradient boosting sobre operaciones reales. Explicabilidad vía SHAP para mantener el "porqué" de cada número.</td><td>Al juntar ~300–500 cierres</td></tr>
+      <tr><td><span class="pill p-v2">v3 · Geoespacial</span></td><td>Suma señales de entorno (distancias, servicios, ruido) y valuación masiva estilo IDECOR.</td><td>Escala provincial</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4>Por qué arrancar heurístico y no con ML</h4>
+  <p>Con pocos datos, un modelo ML sobreajusta y se vuelve una caja negra —exactamente el error de Zillow. La heurística transparente <strong>funciona desde el día cero sin datos de cierre</strong>, es auditable factor por factor, y a medida que entran operaciones reales vas <strong>calibrando los coeficientes</strong> (base por zona, brecha oferta/cierre) y, recién con volumen suficiente, migrás a lo estadístico manteniendo el desglose visible. La explicabilidad no es un extra: es la defensa contra el sesgo y el reclamo legal.</p>
+
+  <div class="callout"><span class="tag">Salida siempre explicable</span><p>Cada valuación devuelve <strong>valor + rango + confianza + lista de factores con su contribución + comparables usados + versión del modelo</strong>. Nunca un número solo. Es lo que viste en el prototipo, y es contractualmente lo que se le muestra a ambas partes.</p></div>
+</section></div></div>
+
+<div class="wrap"><section id="ia">
+  <div class="sec-head"><div class="num">05 · IA</div><h2>Capa de inteligencia</h2>
+  <p class="dek">La IA no reemplaza el motor de valuación: opera <em>sobre</em> el expediente estructurado para explicarlo, resumirlo y responder —con datos citados, no inventados.</p></div>
+
+  <h4>Patrón: RAG sobre el expediente + herramientas</h4>
+  <ul>
+    <li><strong>Modelo:</strong> un LLM de primera línea (familia Claude) como orquestador, vía API.</li>
+    <li><strong>RAG:</strong> el asistente responde <em>solo</em> con el expediente verificado del inmueble (recuperado del vector store) — cada afirmación cita su fuente. Sin datos, no responde: evita alucinar valores.</li>
+    <li><strong>Herramientas (tool use):</strong> el LLM llama al motor de valuación, al analizador legal y a la búsqueda de comparables como funciones — no "estima" de memoria.</li>
+    <li><strong>Guardarraíles:</strong> nunca afirma estado legal sin el Informe Nº1; marca explícitamente lo no verificado; toda cifra sensible pasa por el humano matriculado.</li>
+  </ul>
+
+  <div class="callout"><span class="tag">Roadmap de agentes</span><p>En el MVP, un solo asistente de lectura del expediente. Los agentes especializados del plan general (valuador, due-diligence, matchmaker, negociador) se habilitan de a uno sobre esta misma base de datos + herramientas, sin rehacer arquitectura.</p></div>
+</section></div>
+
+<div class="band"><div class="wide"><section id="stack">
+  <div class="sec-head"><div class="num">06 · STACK</div><h2>Stack tecnológico propuesto</h2>
+  <p class="dek">Elecciones pragmáticas: rápido de construir, fuerte en geoespacial y en IA, barato de operar al inicio.</p></div>
+  <div class="stack">
+    <div class="sc"><div class="sl">Backend</div><div class="sv">Python · FastAPI</div><p>Ecosistema de datos/ML nativo; ideal para scrapers, parsing y el motor de valuación.</p></div>
+    <div class="sc"><div class="sl">Base de datos</div><div class="sv">PostgreSQL + PostGIS</div><p>Relacional + geoespacial en uno. Consultas de comparables por distancia.</p></div>
+    <div class="sc"><div class="sl">Scraping / parsing</div><div class="sv">Playwright + pdfplumber</div><p>Portales dinámicos y extracción de informes/planos en PDF.</p></div>
+    <div class="sc"><div class="sl">Frontend</div><div class="sv">Next.js / React</div><p>El prototipo evoluciona a app real; SSR para el export PDF.</p></div>
+    <div class="sc"><div class="sl">IA</div><div class="sv">API Claude + pgvector</div><p>LLM con tool use + RAG sobre Postgres, sin infra extra al inicio.</p></div>
+    <div class="sc"><div class="sl">Infra</div><div class="sv">1 VPS / contenedores</div><p>Docker Compose al arranque; nube gestionada cuando escale. Asset-light.</p></div>
+    <div class="sc"><div class="sl">Geocoding / mapas</div><div class="sv">Datos IDE + OSM</div><p>Capas oficiales + OpenStreetMap para contexto de entorno.</p></div>
+    <div class="sc"><div class="sl">Auth / roles</div><div class="sv">OAuth + RBAC</div><p>Rol "matriculado" con permisos sobre datos del Registro.</p></div>
+  </div>
+</section></div></div>
+
+<div class="wrap"><section id="seguridad">
+  <div class="sec-head"><div class="num">07 · SEGURIDAD Y CUMPLIMIENTO</div><h2>Datos, trazabilidad y responsabilidad</h2></div>
+  <ul>
+    <li><strong>Protección de datos (Ley 25.326):</strong> datos de titulares tratados con base legal, minimización y acceso por rol; derecho de acceso/rectificación contemplado.</li>
+    <li><strong>Procedencia por campo:</strong> cada dato guarda fuente, fecha y hash. El pasaporte distingue visualmente lo <em>verificado</em> de lo <em>estimado</em>.</li>
+    <li><strong>Límite de responsabilidad:</strong> la valuación es una estimación con rango y confianza declarados; el estado legal lo valida el matriculado. Nada se presenta como certeza absoluta.</li>
+    <li><strong>Auditoría:</strong> log inmutable de quién consultó y verificó qué — base de la confianza y defensa ante disputas.</li>
+    <li><strong>Scraping responsable:</strong> respeto de términos y rate-limits; preferencia por datos abiertos y acuerdos por sobre el scraping frágil.</li>
+  </ul>
+</section></div>
+
+<div class="band"><div class="wrap"><section id="plan">
+  <div class="sec-head"><div class="num">08 · CONSTRUCCIÓN</div><h2>Plan a 12 semanas</h2>
+  <p class="dek">Un camino concreto de cero a un MVP operando con el corredor fundador en el wedge Ciudad/Godoy Cruz.</p></div>
+  <div class="road">
+    <div class="phase"><div class="pt">Semanas 1–2 · Cimientos</div><h4>Entidad canónica + esqueleto</h4><p>Modelo de datos (Postgres+PostGIS), API base, auth por rol, deploy en un VPS. Carga manual de 10 inmuebles reales para trabajar con datos verdaderos desde el día uno.</p></div>
+    <div class="phase"><div class="pt">Semanas 3–5 · Ingesta</div><h4>Conectores de datos</h4><p>Conector ATM/Catastro (padrón→parcela+avalúo), descarga IDE a PostGIS, primer scraper de portales con geocoding. Deduplicación de avisos.</p></div>
+    <div class="phase"><div class="pt">Semanas 5–7 · Valuación</div><h4>Motor explicable en producción</h4><p>Portar el heurístico del prototipo al backend con parámetros por zona configurables; selección de comparables geoespacial; export de la valuación con su desglose.</p></div>
+    <div class="phase"><div class="pt">Semanas 7–9 · Legal + IA</div><h4>Analizador del Informe Nº1 + asistente</h4><p>Flujo del matriculado para cargar el informe; parser de gravámenes y banderas; asistente IA (RAG + tool use) que explica el pasaporte con fuentes citadas.</p></div>
+    <div class="phase"><div class="pt">Semanas 9–11 · App</div><h4>La herramienta del corredor</h4><p>Conectar el frontend (el prototipo) a datos reales; export PDF del pasaporte; formulario de cierre que siembra el dataset de operaciones.</p></div>
+    <div class="phase"><div class="pt">Semanas 11–12 · Piloto</div><h4>Operar de verdad</h4><p>El corredor fundador usa el sistema en operaciones reales del wedge. Medir tiempo de armado, precisión de valuación vs. cierre, y recoger feedback para v2.</p></div>
+  </div>
+
+  <div class="callout gold" style="margin-top:30px"><span class="tag">El principio que ordena el build</span><p>Cada semana el sistema debe poder generar un pasaporte <em>de verdad</em> sobre un inmueble real, aunque sea con menos campos. Nada de meses construyendo infra sin output. El corredor fundador es tu primer usuario y tu control de calidad continuo desde la semana 2.</p></div>
+</section></div></div>
+
+<footer><div class="wide">
+  <span>Claridad Total · Especificación técnica del MVP</span>
+  <span class="note">Anexo del informe estratégico · Julio 2026</span>
+</div></footer>

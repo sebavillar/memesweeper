@@ -1,0 +1,689 @@
+<title>Claridad Total — Plataforma inmobiliaria nativa en IA</title>
+<style>
+  :root{
+    --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F5;
+    --ink:#161D26; --ink-soft:#3E4956; --muted:#6B7683; --faint:#9AA4AE;
+    --line:#E1E6EB; --line-strong:#CDD5DC;
+    --accent:#0C7C8C; --accent-strong:#095B67; --accent-wash:#E4F1F2;
+    --gold:#9C6A15; --gold-wash:#F3EBDA;
+    --good:#2E7D5B; --warn:#9A6A12; --crit:#B23F2A;
+    --shadow:0 1px 2px rgba(20,29,38,.05),0 8px 24px rgba(20,29,38,.06);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:"SF Mono","JetBrains Mono",ui-monospace,"Roboto Mono",Menlo,Consolas,monospace;
+    --measure:68ch;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#0E1319; --surface:#151C24; --surface-2:#1B242D;
+      --ink:#EAEEF2; --ink-soft:#B9C3CD; --muted:#8A95A0; --faint:#5E6974;
+      --line:#25303A; --line-strong:#33404B;
+      --accent:#3FC1D2; --accent-strong:#6FD6E3; --accent-wash:#123038;
+      --gold:#D9A34C; --gold-wash:#2A2317;
+      --good:#4FB88A; --warn:#D2A24A; --crit:#E0765E;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F5;
+    --ink:#161D26; --ink-soft:#3E4956; --muted:#6B7683; --faint:#9AA4AE;
+    --line:#E1E6EB; --line-strong:#CDD5DC;
+    --accent:#0C7C8C; --accent-strong:#095B67; --accent-wash:#E4F1F2;
+    --gold:#9C6A15; --gold-wash:#F3EBDA;
+    --good:#2E7D5B; --warn:#9A6A12; --crit:#B23F2A;
+    --shadow:0 1px 2px rgba(20,29,38,.05),0 8px 24px rgba(20,29,38,.06);
+  }
+  :root[data-theme="dark"]{
+    --paper:#0E1319; --surface:#151C24; --surface-2:#1B242D;
+    --ink:#EAEEF2; --ink-soft:#B9C3CD; --muted:#8A95A0; --faint:#5E6974;
+    --line:#25303A; --line-strong:#33404B;
+    --accent:#3FC1D2; --accent-strong:#6FD6E3; --accent-wash:#123038;
+    --gold:#D9A34C; --gold-wash:#2A2317;
+    --good:#4FB88A; --warn:#D2A24A; --crit:#E0765E;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--sans);font-size:17px;line-height:1.7;
+    font-feature-settings:"kern" 1;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--measure);margin:0 auto;padding:0 22px}
+  .wide{max-width:1080px;margin:0 auto;padding:0 22px}
+
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.15;text-wrap:balance;color:var(--ink)}
+  p{margin:0 0 1.05em}
+  a{color:var(--accent-strong);text-underline-offset:3px;text-decoration-thickness:1px}
+  strong{font-weight:650;color:var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .lead{font-size:1.22em;line-height:1.55;color:var(--ink-soft)}
+
+  /* HERO */
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);
+    background:
+      radial-gradient(120% 90% at 88% -10%,var(--accent-wash) 0%,transparent 55%),
+      linear-gradient(180deg,var(--surface),var(--paper));}
+  .hero .grid-lines{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:44px 44px;mask-image:radial-gradient(120% 80% at 80% 0%,#000 0%,transparent 62%)}
+  .hero-inner{position:relative;max-width:1080px;margin:0 auto;padding:64px 22px 54px}
+  .hero h1{font-size:clamp(2.5rem,7vw,4.4rem);letter-spacing:-.01em;margin:.35em 0 .3em;max-width:15ch}
+  .hero .kicker{font-family:var(--mono);font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .hero .kicker b{color:var(--accent);font-weight:600}
+  .hero .sub{font-size:clamp(1.1rem,2.4vw,1.4rem);color:var(--ink-soft);max-width:46ch;line-height:1.5;font-family:var(--serif);font-style:italic}
+  .hero-meta{display:flex;gap:26px;flex-wrap:wrap;margin-top:34px;padding-top:22px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .hero-meta div span{display:block;color:var(--ink);font-size:14px;margin-top:3px;font-family:var(--sans);font-weight:600}
+
+  /* SECTION SCAFFOLD */
+  section{padding:52px 0}
+  .sec-head{margin-bottom:26px}
+  .sec-head .num{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.14em;font-weight:600}
+  .sec-head h2{font-size:clamp(1.7rem,4vw,2.5rem);margin:.15em 0 .1em;letter-spacing:-.01em}
+  .sec-head .dek{color:var(--muted);font-size:1.02em;max-width:60ch}
+  hr.rule{border:0;border-top:1px solid var(--line);margin:0}
+
+  /* KEY TAKEAWAYS */
+  .takeaways{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:8px}
+  .takeaways .t{background:var(--surface);padding:20px 22px;display:flex;gap:16px;align-items:flex-start}
+  .takeaways .t .n{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700;padding-top:3px;min-width:26px}
+  .takeaways .t p{margin:0;font-size:.99em}
+  .takeaways .t b{display:block;margin-bottom:2px}
+
+  /* STAT ROW */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:26px 0}
+  .stat{background:var(--surface);padding:22px 20px}
+  .stat .fig{font-family:var(--serif);font-size:2.1rem;font-weight:600;color:var(--ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+  .stat .fig.accent{color:var(--accent)}
+  .stat .fig.crit{color:var(--crit)}
+  .stat .lbl{font-size:.86em;color:var(--muted);margin-top:8px;line-height:1.35}
+
+  /* CALLOUTS */
+  .callout{border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:18px 22px;margin:26px 0;box-shadow:var(--shadow)}
+  .callout.gold{border-left-color:var(--gold)}
+  .callout.crit{border-left-color:var(--crit)}
+  .callout .tag{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:6px;display:block}
+  .callout.gold .tag{color:var(--gold)} .callout.crit .tag{color:var(--crit)}
+  .callout p:last-child{margin-bottom:0}
+  blockquote{margin:26px 0;padding:6px 0 6px 26px;border-left:3px solid var(--line-strong);font-family:var(--serif);font-style:italic;font-size:1.28em;line-height:1.45;color:var(--ink)}
+  blockquote cite{display:block;font-family:var(--sans);font-style:normal;font-size:.6em;color:var(--muted);margin-top:12px;letter-spacing:.01em}
+
+  /* CASE CARDS */
+  .cases{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:10px}
+  .case{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .case .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px}
+  .case h4{font-size:1.28rem;margin:0}
+  .case .flag{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .case .verdict{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:3px 9px;border-radius:20px;display:inline-block;margin:6px 0 12px;width:max-content}
+  .v-win{background:var(--accent-wash);color:var(--accent-strong)}
+  .v-mix{background:var(--gold-wash);color:var(--gold)}
+  .v-fail{background:color-mix(in srgb,var(--crit) 14%,transparent);color:var(--crit)}
+  .case p{font-size:.92em;color:var(--ink-soft);margin:0 0 12px}
+  .case .lesson{margin-top:auto;padding-top:12px;border-top:1px dashed var(--line-strong);font-size:.86em}
+  .case .lesson b{color:var(--accent);font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:3px}
+
+  /* TABLE */
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;margin:24px 0;box-shadow:var(--shadow)}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:.9em}
+  th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{background:var(--surface-2);font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  tbody tr:last-child td{border-bottom:0}
+  tbody td:first-child{font-weight:600;color:var(--ink)}
+  td .pill{font-family:var(--mono);font-size:10.5px;padding:2px 8px;border-radius:20px;white-space:nowrap}
+  .p-good{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good)}
+  .p-warn{background:var(--gold-wash);color:var(--gold)}
+  .p-crit{background:color-mix(in srgb,var(--crit) 14%,transparent);color:var(--crit)}
+
+  /* LESSON / PRINCIPLE LIST */
+  .principles{display:grid;gap:14px;margin-top:8px;counter-reset:pr}
+  .principle{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;box-shadow:var(--shadow)}
+  .principle::before{counter-increment:pr;content:counter(pr,decimal-leading-zero);font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);padding-top:2px}
+  .principle h4{margin:0 0 5px;font-size:1.2rem}
+  .principle p{margin:0;font-size:.94em;color:var(--ink-soft)}
+
+  /* ARCHITECTURE / AGENTS */
+  .layers{display:grid;gap:14px;margin:8px 0 4px}
+  .layer{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden;box-shadow:var(--shadow)}
+  .layer .lh{padding:14px 20px;background:var(--surface-2);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  .layer .lh .lnum{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:2px 7px}
+  .layer .lh h4{margin:0;font-size:1.12rem}
+  .layer .lb{padding:16px 20px}
+  .agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+  .agent{border:1px solid var(--line);border-radius:11px;padding:14px 15px;background:var(--paper)}
+  .agent .an{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:5px}
+  .agent p{margin:0;font-size:.86em;color:var(--ink-soft)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .chip{font-family:var(--mono);font-size:11.5px;background:var(--paper);border:1px solid var(--line-strong);border-radius:20px;padding:5px 12px;color:var(--ink-soft)}
+
+  /* TWO-SIDE (comprador / vendedor) */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  .side{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:22px;box-shadow:var(--shadow)}
+  .side h4{margin:0 0 4px;font-size:1.3rem;display:flex;align-items:center;gap:10px}
+  .side .who{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+  .side ul{margin:0;padding:0;list-style:none;display:grid;gap:11px}
+  .side li{font-size:.92em;color:var(--ink-soft);padding-left:20px;position:relative;line-height:1.5}
+  .side li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:7px;border-radius:2px;background:var(--accent);transform:rotate(45deg)}
+  .side li b{color:var(--ink)}
+
+  /* ROADMAP */
+  .road{display:grid;gap:0;margin-top:8px;border-left:2px solid var(--line-strong);padding-left:0}
+  .phase{position:relative;padding:0 0 26px 28px}
+  .phase::before{content:"";position:absolute;left:-7px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);box-shadow:0 0 0 2px var(--accent)}
+  .phase:last-child{padding-bottom:0}
+  .phase .pt{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .phase h4{margin:3px 0 5px;font-size:1.22rem}
+  .phase p{margin:0;font-size:.93em;color:var(--ink-soft)}
+
+  /* TOC */
+  .toc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px;box-shadow:var(--shadow);margin-top:8px}
+  .toc a{display:flex;gap:14px;align-items:baseline;padding:11px 14px;border-radius:9px;text-decoration:none;color:var(--ink);border-bottom:1px solid var(--line)}
+  .toc a:last-child{border-bottom:0}
+  .toc a:hover{background:var(--surface-2)}
+  .toc .tn{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600;min-width:24px}
+  .toc .tt{font-weight:600;font-family:var(--serif);font-size:1.05rem}
+  .toc .td{color:var(--muted);font-size:.82em;margin-left:auto;text-align:right}
+
+  /* SOURCES */
+  .sources{columns:2;column-gap:36px;font-size:.82em;color:var(--muted)}
+  .sources li{margin-bottom:10px;break-inside:avoid}
+  .sources a{color:var(--ink-soft);word-break:break-word}
+  footer{border-top:1px solid var(--line);padding:40px 0 60px;color:var(--muted);font-size:.85em}
+  footer .wide{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;align-items:center}
+
+  .band{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .note{font-size:.82em;color:var(--faint);font-family:var(--mono)}
+
+  @media (max-width:640px){
+    body{font-size:16px}
+    .duo{grid-template-columns:1fr}
+    .sources{columns:1}
+    .principle{grid-template-columns:1fr;gap:6px}
+    .principle::before{padding-top:0}
+    .hero-inner{padding:44px 22px 40px}
+    .toc .td{display:none}
+  }
+  @media (prefers-reduced-motion:no-preference){
+    a,.toc a,.case{transition:background .15s ease,transform .15s ease}
+  }
+  a:focus-visible,.toc a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+  @media print{
+    :root{--paper:#fff;--surface:#fff}
+    body{font-size:11.5pt}
+    .hero .grid-lines{display:none}
+    section{padding:20px 0;break-inside:avoid}
+    .case,.principle,.layer,.side,.callout,.stat{box-shadow:none}
+    a{color:var(--ink);text-decoration:none}
+    .toc{display:none}
+  }
+</style>
+
+<div class="hero">
+  <div class="grid-lines"></div>
+  <div class="hero-inner">
+    <div class="kicker"><b>Informe estratégico</b> <span>·</span> Proptech &amp; IA <span>·</span> Julio 2026</div>
+    <h1>Claridad Total</h1>
+    <p class="sub">Una plataforma inmobiliaria nativa en IA que elimina la intermediación opaca y le da a comprador y vendedor la misma información, al mismo tiempo.</p>
+    <div class="hero-meta">
+      <div>Tesis<span>El dato verificado, no el algoritmo, es el foso</span></div>
+      <div>Alcance<span>Investigación global + diseño de producto</span></div>
+      <div>Sector<span>Bienes no-commodity: real estate</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <section id="resumen">
+    <div class="sec-head">
+      <div class="num">RESUMEN EJECUTIVO</div>
+      <h2>La oportunidad no es otro portal. Es resolver la asimetría de información.</h2>
+    </div>
+    <p class="lead">Un inmueble no es un commodity: cada uno es único, se transa pocas veces en la vida, es ilíquido y está cargado de información que una parte tiene y la otra no. Ese desbalance —no la falta de listados— es lo que encarece, ralentiza y ensucia cada operación. La intermediación tradicional vive de administrar esa opacidad. La oportunidad es <strong>disolverla</strong>: darle a las dos partes el mismo expediente verificado, valuaciones explicables y agentes de IA que trabajan para cada lado, cobrando por el resultado y no por esconder información.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="fig crit">3–6%</div><div class="lbl">Comisión típica de intermediación sobre el valor del inmueble</div></div>
+      <div class="stat"><div class="fig crit">US$1.300M</div><div class="lbl">Pérdida neta de Opendoor en 2025 con el modelo intensivo en capital</div></div>
+      <div class="stat"><div class="fig">85–90%</div><div class="lbl">Propiedades que un AVM valúa dentro del 5–10% del avalúo… en mercados líquidos</div></div>
+      <div class="stat"><div class="fig accent">US$4B</div><div class="lbl">Tamaño proyectado del mercado de real estate tokenizado a 2035 (Deloitte)</div></div>
+    </div>
+
+    <p>Este informe recorre por qué el sector es estructuralmente distinto de un mercado de commodities, disecciona <strong>qué hace realmente el intermediario</strong> y qué de eso se puede automatizar, revisa <strong>casos de éxito y fracaso en todo el mundo</strong> —de Zillow y Opendoor a QuintoAndar, Habi y Purplebricks— y destila los patrones que separan a quienes sobreviven. Con eso propone una <strong>arquitectura de producto concreta</strong>: capa de datos verificados, agentes de IA especializados por rol, un puente de confianza bilateral y un modelo de negocio asset-light alineado por incentivos. Cierra con los <strong>puntos de mejora que nadie resolvió bien todavía</strong> —tu ventana de entrada.</p>
+
+    <div class="takeaways">
+      <div class="t"><span class="n">01</span><p><b>El problema es de confianza, no de tecnología.</b> Quienes ganan (QuintoAndar) resolvieron un dolor de confianza real; quienes pierden (Purplebricks) creyeron que bastaba con abaratar el fee.</p></div>
+      <div class="t"><span class="n">02</span><p><b>No tomes el balance.</b> Comprar inventario para revender (iBuying) fundió a Zillow y casi a Opendoor. El modelo que sobrevive es asset-light: cobrar por facilitar, no por poseer.</p></div>
+      <div class="t"><span class="n">03</span><p><b>La IA da liquidez donde menos vale.</b> Los algoritmos valúan bien lo homogéneo y líquido —justo donde la información importa poco. El valor está en los activos difíciles, y ahí la explicabilidad manda.</p></div>
+      <div class="t"><span class="n">04</span><p><b>El dato verificado es el foso.</b> No el modelo. Un "pasaporte digital" del inmueble —título, deudas, historia, comparables reales de cierre— es lo que ningún portal de publicaciones tiene.</p></div>
+      <div class="t"><span class="n">05</span><p><b>Alineá incentivos o repetís el conflicto.</b> La doble agencia y el fee fijo desalinean. Un agente de IA por cada lado, con fee de éxito, es la novedad estructural que la regulación (fallo NAR 2024) recién empieza a exigir.</p></div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="toc">
+    <div class="sec-head"><div class="num">CONTENIDO</div><h2>Cómo está armado este informe</h2></div>
+    <nav class="toc">
+      <a href="#problema"><span class="tn">01</span><span class="tt">Por qué un inmueble no es un commodity</span><span class="td">Los cimientos económicos</span></a>
+      <a href="#intermediario"><span class="tn">02</span><span class="tt">Anatomía del intermediario</span><span class="td">Qué automatizar y qué no</span></a>
+      <a href="#casos"><span class="tn">03</span><span class="tt">El mapa global: éxitos y fracasos</span><span class="td">10 casos disecados</span></a>
+      <a href="#patrones"><span class="tn">04</span><span class="tt">Patrones y lecciones destiladas</span><span class="td">Qué separa a los que sobreviven</span></a>
+      <a href="#producto"><span class="tn">05</span><span class="tt">La aplicación propuesta</span><span class="td">Arquitectura de claridad total</span></a>
+      <a href="#negocio"><span class="tn">06</span><span class="tt">Modelo de negocio y go-to-market</span><span class="td">Asset-light, alineado</span></a>
+      <a href="#gaps"><span class="tn">07</span><span class="tt">Puntos de mejora abiertos</span><span class="td">Tu ventana de entrada</span></a>
+      <a href="#riesgos"><span class="tn">08</span><span class="tt">Riesgos y mitigaciones</span><span class="td">Sesgo, legal, adopción</span></a>
+      <a href="#roadmap"><span class="tn">09</span><span class="tt">Roadmap 0 → 1</span><span class="td">De MVP a red</span></a>
+    </nav>
+  </section>
+</div>
+
+<hr class="rule">
+
+<!-- 01 -->
+<div class="band"><div class="wrap"><section id="problema">
+  <div class="sec-head">
+    <div class="num">PARTE 01</div>
+    <h2>Por qué un inmueble no es un commodity</h2>
+    <p class="dek">Antes de construir, hay que entender qué falla. Casi todo lo distintivo del sector nace de una idea: las dos partes nunca saben lo mismo.</p>
+  </div>
+
+  <p>Un barril de petróleo es igual a otro barril de petróleo. Una acción de una empresa es idéntica a la siguiente. Por eso tienen precios de pantalla, spreads mínimos y mercados líquidos: la información sobre el bien es pública y simétrica. Un inmueble es lo opuesto en cada dimensión.</p>
+
+  <div class="chips">
+    <span class="chip">Heterogéneo · cada unidad es única</span>
+    <span class="chip">Ilíquido · se transa pocas veces</span>
+    <span class="chip">Indivisible · ticket alto</span>
+    <span class="chip">Local · el contexto define el valor</span>
+    <span class="chip">Emocional · no es solo un activo</span>
+    <span class="chip">Alto costo de transacción</span>
+  </div>
+
+  <h3 style="margin-top:34px">El "mercado de limones" aplicado a la vivienda</h3>
+  <p>En 1970, George Akerlof mostró con el mercado de autos usados —su famoso <em>"Market for Lemons"</em>— cómo la <strong>asimetría de información</strong> puede destruir un mercado. Si el vendedor sabe si el bien es bueno o malo (un "limón") y el comprador no puede distinguirlos, el comprador ofrece un precio promedio; los dueños de buenos bienes se retiran porque ese precio los subvalúa; el mercado se llena de limones y los precios caen aún más. La selección adversa empuja la calidad hacia abajo.</p>
+  <p>El real estate es un caso de manual: el vendedor conoce las humedades, el ruido del vecino, el problema con la escritura, la deuda de expensas, por qué se muda. El comprador ve una foto con gran angular y una descripción escrita para vender. La respuesta histórica del mercado a este problema fueron <strong>inspecciones, certificaciones, escribanos y agentes</strong> —mecanismos costosos para reconstruir la confianza que la información asimétrica destruyó.</p>
+
+  <blockquote>La intermediación solo es rentable en las viviendas más líquidas y fáciles de valuar. La tecnología de los iBuyers aporta liquidez, pero justamente en los segmentos donde menos se valora.
+    <cite>Investigación citada en el análisis de Stanford GSB sobre el colapso de Zillow Offers</cite></blockquote>
+
+  <p>Esta frase es la brújula de todo el informe. La tecnología que solo funciona en lo líquido y homogéneo compite en el terreno donde la información vale menos. <strong>El valor real está donde el activo es difícil de valuar y la información es escasa y asimétrica</strong> —y ahí la solución no es un precio automático, sino claridad verificable.</p>
+
+  <div class="callout">
+    <span class="tag">La reformulación</span>
+    <p>El negocio no es "publicar propiedades" ni "comprar y revender rápido". Es <strong>producir y distribuir información verificada de forma simétrica</strong>, para que ambas partes decidan mejor y la transacción sea más rápida, más barata y más justa. Todo lo demás es consecuencia de eso.</p>
+  </div>
+</section></div></div>
+
+<!-- 02 -->
+<div class="wrap"><section id="intermediario">
+  <div class="sec-head">
+    <div class="num">PARTE 02</div>
+    <h2>Anatomía del intermediario</h2>
+    <p class="dek">"Eliminar la intermediación" no es eliminar el trabajo que hace el intermediario. Es desagregarlo: automatizar lo que es información y proceso, y reemplazar con verificación lo que era confianza personal.</p>
+  </div>
+
+  <p>El agente inmobiliario cobra 3–6% del valor de la propiedad por un paquete de tareas muy distintas entre sí. Cuando lo abrís, descubrís que buena parte es información y logística —altamente automatizable— y una porción menor es juicio, negociación y contención emocional. La clave del producto es saber qué caja atacar con software y cuál dejar en manos humanas (o de IA supervisada).</p>
+
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Lo que hace hoy el intermediario</th><th>Qué es en realidad</th><th>¿Automatizable con IA + datos?</th></tr></thead>
+    <tbody>
+      <tr><td>Estimar el precio</td><td>Análisis de comparables y contexto</td><td><span class="pill p-good">Alto — con explicabilidad</span></td></tr>
+      <tr><td>Publicar y dar visibilidad</td><td>Distribución y marketing</td><td><span class="pill p-good">Alto</span></td></tr>
+      <tr><td>Filtrar y calificar interesados</td><td>Matching + scoring financiero</td><td><span class="pill p-good">Alto</span></td></tr>
+      <tr><td>Coordinar visitas y agenda</td><td>Logística</td><td><span class="pill p-good">Alto</span></td></tr>
+      <tr><td>Responder dudas 24/7</td><td>Concierge sobre el listado</td><td><span class="pill p-good">Alto</span></td></tr>
+      <tr><td>Verificar título, deudas, gravámenes</td><td>Due diligence legal</td><td><span class="pill p-warn">Medio — con fuentes y humano en el loop</span></td></tr>
+      <tr><td>Negociar el precio y condiciones</td><td>Juicio + estrategia</td><td><span class="pill p-warn">Medio — asistida, no autónoma</span></td></tr>
+      <tr><td>Coordinar el cierre (escribano, banco)</td><td>Orquestación de proceso</td><td><span class="pill p-warn">Medio</span></td></tr>
+      <tr><td>Contención emocional / confianza</td><td>Relación humana</td><td><span class="pill p-crit">Bajo — insustituible por ahora</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>El conflicto que nadie nombra: la doble agencia</h3>
+  <p>En el modelo clásico, el agente suele representar al vendedor —o peor, a ambas partes— pero se presenta ante el comprador como un asesor. Su incentivo es cerrar rápido y al mayor precio para cobrar comisión, no que el comprador pague lo justo. Es un conflicto de interés estructural, disfrazado de servicio.</p>
+  <p>En 2024 este problema estalló en Estados Unidos: la <strong>National Association of Realtors (NAR) acordó pagar US$418 millones</strong> y cambiar sus prácticas —eliminando del MLS las "ofertas de compensación" al agente comprador y volviendo obligatorios los acuerdos explícitos de representación del comprador desde el 17 de agosto de 2024. Compass (US$57,5M) y Redfin (US$9,25M) settlearon por separado. Es el reconocimiento regulatorio de que <strong>cada parte necesita a alguien que trabaje solo para ella</strong> —precisamente el hueco que un agente de IA por lado puede llenar de forma nativa.</p>
+
+  <div class="callout gold">
+    <span class="tag">El caso argentino / LatAm</span>
+    <p>En Argentina, la <strong>Ley 20.266 (1973)</strong> reserva el corretaje inmobiliario a martilleros y corredores matriculados: quien intermedia "de forma habitual y onerosa" sin matrícula ejerce ilegalmente. Pero hay un fuerte <strong>debate de desregulación en curso</strong> que apunta a abrir la actividad. Implicancia de producto: no te posiciones como "corretaje sin licencia". Encuadrá la plataforma como <strong>infraestructura de datos, verificación y software</strong> que las partes usan directamente —y, donde la ley lo exija, integrá al profesional matriculado como un rol dentro del flujo, no como el dueño de la relación.</p>
+  </div>
+</section></div>
+
+<!-- 03 -->
+<div class="band"><div class="wide"><section id="casos">
+  <div class="sec-head">
+    <div class="num">PARTE 03</div>
+    <h2>El mapa global: éxitos y fracasos</h2>
+    <p class="dek">Diez casos que ya gastaron miles de millones probando hipótesis. Cada uno deja una lección transferible a tu producto.</p>
+  </div>
+
+  <div class="cases">
+    <div class="case">
+      <div class="top"><h4>Zillow Offers</h4><span class="flag">🇺🇸 iBuying</span></div>
+      <span class="verdict v-fail">Fracaso</span>
+      <p>El portal #1 de EE.UU. quiso comprar casas con su algoritmo Zestimate y revenderlas. Para ganar share, ajustó el modelo para ofertar más alto. Cerró en 2021 con <strong>~US$330M de pérdida trimestral</strong>. "La imprevisibilidad de los precios excede lo que anticipamos", admitió su CEO.</p>
+      <div class="lesson"><b>Lección</b>Sobreconfianza algorítmica + riesgo de balance = ruina. Valuar mal por 2% vuelve la reventa una pérdida.</div>
+    </div>
+
+    <div class="case">
+      <div class="top"><h4>Opendoor</h4><span class="flag">🇺🇸 iBuying → marketplace</span></div>
+      <span class="verdict v-mix">Pivote en curso</span>
+      <p>El pionero del iBuying sobrevivió pero sangró: <strong>US$1.300M de pérdida neta en 2025</strong>. Su respuesta —"Opendoor 2.0"— es abandonar el balance: <strong>marketplace asset-light</strong>, "AI-first y agent-led", conecta comprador y vendedor sin tomar la casa. Pilotos: 2× conversión a oferta, 5× a listado.</p>
+      <div class="lesson"><b>Lección</b>El propio pionero migró a asset-light. Facilitar la transacción, no poseerla, es el modelo que escala.</div>
+    </div>
+
+    <div class="case">
+      <div class="top"><h4>Purplebricks</h4><span class="flag">🇬🇧 Fee fijo</span></div>
+      <span class="verdict v-fail">Fracaso</span>
+      <p>Cobraba un <strong>fee fijo bajo</strong> en lugar de comisión, se vendiera o no la casa. El fee no era tan fijo (extras por visitas y marketing) y el modelo dependía de publicidad carísima: el CAC superó el ingreso por listado. De £514 a £14 por acción; <strong>comprada por £1 en 2023</strong>.</p>
+      <div class="lesson"><b>Lección</b>Abaratar el fee no crea confianza ni alinea incentivos. Cobrar salga o no la venta enoja al usuario.</div>
+    </div>
+
+    <div class="case">
+      <div class="top"><h4>Redfin</h4><span class="flag">🇺🇸 Brokerage + tech</span></div>
+      <span class="verdict v-mix">Mixto</span>
+      <p>Agentes propios asalariados + comisiones más bajas + gran portal de datos. Bajó costos reales para el vendedor y construyó marca de transparencia, pero <strong>los márgenes de una brokerage con gente son finos</strong> y la rentabilidad fue esquiva.</p>
+      <div class="lesson"><b>Lección</b>Transparencia de datos como imán de demanda funciona; sostener agentes propios pesa en el margen.</div>
+    </div>
+
+    <div class="case">
+      <div class="top"><h4>Compass</h4><span class="flag">🇺🇸 Agentes premium + software</span></div>
+      <span class="verdict v-mix">Mixto</span>
+      <p>Le dio a agentes de alta gama las mejores herramientas de software y creció fuerte. Pero <strong>no elimina la intermediación: la potencia</strong>. Su CEO dijo tras el fallo NAR que las comisiones "no cambiaron notablemente". Es el bando que defiende al agente.</p>
+      <div class="lesson"><b>Lección</b>Hay demanda enorme de mejores herramientas. Pero armar software para agentes ≠ desintermediar.</div>
+    </div>
+
+    <div class="case">
+      <div class="top"><h4>QuintoAndar</h4><span class="flag">🇧🇷 Alquiler → compraventa</span></div>
+      <span class="verdict v-win">Éxito</span>
+      <p>El proptech más valioso de LatAm (<strong>~US$5.100M</strong>). Ganó resolviendo un <strong>dolor de confianza real</strong>: alquilar sin garante, con la plataforma asumiendo el riesgo y garantizando el pago. Luego expandió a compraventa y a México.</p>
+      <div class="lesson"><b>Lección</b>Elegí un dolor de confianza agudo y resolvelo de punta a punta. La confianza, no el listado, es el producto.</div>
+    </div>
+
+    <div class="case">
+      <div class="top"><h4>Habi</h4><span class="flag">🇨🇴 Data-driven</span></div>
+      <span class="verdict v-win">Éxito (unicornio)</span>
+      <p>Unicornio colombiano (<strong>US$1.000M</strong>) construido sobre <strong>datos propietarios de precios</strong> en un mercado con poca transparencia. Da certeza de precio y velocidad donde antes reinaba la opacidad. Compite con Flat.mx, TrueHome, La Haus, EmCasa.</p>
+      <div class="lesson"><b>Lección</b>En mercados opacos (como LatAm), construir el dataset de precios reales es en sí una ventaja defendible.</div>
+    </div>
+
+    <div class="case">
+      <div class="top"><h4>La Haus</h4><span class="flag">🇲🇽🇨🇴 Marketplace</span></div>
+      <span class="verdict v-mix">Mixto</span>
+      <p>Marketplace de vivienda nueva con foco en transparencia y financiamiento (incluyendo cripto). Buena tracción, pero <strong>el ciclo inmobiliario y el capital duro golpearon</strong> a toda la camada de proptech LatAm en 2023–24.</p>
+      <div class="lesson"><b>Lección</b>El timing macro y la disciplina de capital importan tanto como el producto. Nacé eficiente en capital.</div>
+    </div>
+
+    <div class="case">
+      <div class="top"><h4>Tokenización / fraccional</h4><span class="flag">🌐 Blockchain</span></div>
+      <span class="verdict v-mix">Emergente</span>
+      <p>Fraccionar inmuebles en tokens da <strong>liquidez y acceso</strong> (invertir desde US$100–1.000). Deloitte proyecta el mercado en <strong>US$4B para 2035</strong>. Pero choca con <strong>incertidumbre legal</strong>, validez de smart contracts y regulación fragmentada por país.</p>
+      <div class="lesson"><b>Lección</b>Enorme a futuro para inversión y liquidez, pero la fricción legal aún lo hace prematuro como núcleo.</div>
+    </div>
+
+    <div class="case">
+      <div class="top"><h4>Concierge agéntico (POP.STORE, etc.)</h4><span class="flag">🌐 Agentic AI 2026</span></div>
+      <span class="verdict v-win">Ola en ascenso</span>
+      <p>Agentes de IA que atienden cada listado 24/7, califican, agendan y orquestan tareas de la transacción. Se proyecta que <strong>~89% de los top agents</strong> usen CRM con IA en 2026. Hoy asisten al agente; mañana pueden operar el flujo entero.</p>
+      <div class="lesson"><b>Lección</b>La IA agéntica ya está normalizada. La ventana es usarla para el usuario final, no solo para el agente.</div>
+    </div>
+  </div>
+</section></div></div>
+
+<!-- 04 -->
+<div class="wrap"><section id="patrones">
+  <div class="sec-head">
+    <div class="num">PARTE 04</div>
+    <h2>Patrones y lecciones destiladas</h2>
+    <p class="dek">Seis principios que se repiten entre los que sobreviven —y que deberían gobernar cada decisión de producto.</p>
+  </div>
+
+  <div class="principles">
+    <div class="principle">
+      <div><h4>No tomes el balance</h4><p>Comprar inventario para revender expone a la empresa a la volatilidad de precios en un activo imposible de valuar con precisión perfecta. Fundió a Zillow y casi a Opendoor, que hoy migra a marketplace. <strong>Modelo asset-light</strong>: cobrá por facilitar, verificar y dar claridad —nunca por poseer.</p></div>
+    </div>
+    <div class="principle">
+      <div><h4>La confianza es el producto, no el listado</h4><p>QuintoAndar ganó garantizando el alquiler; Habi, dando certeza de precio. Purplebricks perdió porque abaratar el fee no genera confianza. Preguntá siempre: <strong>¿qué miedo concreto de comprador y vendedor estoy eliminando con evidencia verificable?</strong></p></div>
+    </div>
+    <div class="principle">
+      <div><h4>Atacá lo difícil de valuar, no lo líquido</h4><p>Los algoritmos brillan en lo homogéneo y líquido —donde la información vale poco y el margen es fino. El valor está en los activos únicos y opacos. Ahí no ganás con un precio automático, sino con <strong>claridad explicable</strong> que reduce la incertidumbre.</p></div>
+    </div>
+    <div class="principle">
+      <div><h4>El dato verificado es el foso</h4><p>Ni el modelo ni la UI son defendibles: se copian. Un <strong>dataset propietario de operaciones reales, títulos, deudas e historia</strong> —sobre todo en mercados opacos como LatAm— es lo que se acumula, mejora con el uso y nadie puede replicar rápido.</p></div>
+    </div>
+    <div class="principle">
+      <div><h4>Alineá incentivos por diseño</h4><p>La doble agencia y el fee fijo desalinean a las partes. El fallo NAR 2024 empuja a la representación separada. Diseñá <strong>un agente de IA que trabaje solo para cada lado</strong>, con fee de éxito: si no hay operación buena, no cobrás.</p></div>
+    </div>
+    <div class="principle">
+      <div><h4>Explicabilidad contra la caja negra</h4><p>El Zestimate era un número sin "por qué", y su opacidad amplificó el desastre. Los reguladores (regla AVM del CFPB, vigente oct-2025) ya exigen transparencia y control de sesgo. <strong>Cada número de tu plataforma debe venir con su razonamiento y sus comparables</strong>.</p></div>
+    </div>
+  </div>
+</section></div>
+
+<!-- 05 -->
+<div class="band"><div class="wide"><section id="producto">
+  <div class="sec-head">
+    <div class="num">PARTE 05</div>
+    <h2>La aplicación propuesta: arquitectura de claridad total</h2>
+    <p class="dek">No es un sitio de publicaciones con un chatbot encima. Es un copiloto de decisión para las dos partes, montado sobre datos verificados y agentes de IA que trabajan para el usuario, no para la comisión.</p>
+  </div>
+
+  <div class="layers">
+    <div class="layer">
+      <div class="lh"><span class="lnum">CAPA 1</span><h4>Datos verificados — el sustrato</h4></div>
+      <div class="lb">
+        <p style="margin-top:0">La materia prima. Se integra, se cruza y se verifica todo lo que hoy está disperso o escondido, y se convierte en un <strong>expediente único por inmueble</strong>.</p>
+        <div class="chips">
+          <span class="chip">Registro de la propiedad · titularidad</span>
+          <span class="chip">Catastro · superficie, linderos</span>
+          <span class="chip">Gravámenes, hipotecas, embargos</span>
+          <span class="chip">Deudas de expensas / impuestos</span>
+          <span class="chip">Operaciones reales de cierre (comparables)</span>
+          <span class="chip">Datos de barrio · servicios, seguridad, ruido</span>
+          <span class="chip">Riesgo climático / estructural</span>
+          <span class="chip">Historia del inmueble</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="lh"><span class="lnum">CAPA 2</span><h4>Agentes de IA especializados — el trabajo</h4></div>
+      <div class="lb">
+        <p style="margin-top:0">En lugar de un chatbot genérico, un <strong>equipo de agentes con roles definidos</strong>, cada uno experto en una etapa. Orquestados, pero auditables uno por uno.</p>
+        <div class="agent-grid">
+          <div class="agent"><div class="an">Valuador</div><p>Estima precio con comparables reales y explica cada ajuste. Rango, no número mágico. Con nivel de confianza.</p></div>
+          <div class="agent"><div class="an">Due diligence legal</div><p>Lee título, detecta gravámenes y deudas, marca riesgos. Humano matriculado en el loop para validar.</p></div>
+          <div class="agent"><div class="an">Matchmaker</div><p>Cruza necesidades reales del comprador (no solo filtros) con el inventario. Búsqueda semántica.</p></div>
+          <div class="agent"><div class="an">Concierge de visitas</div><p>Responde 24/7 sobre el inmueble con datos verificados, agenda y coordina recorridos.</p></div>
+          <div class="agent"><div class="an">Asistente de negociación</div><p>Le da a cada parte contexto, comparables y estrategia. Transparente, nunca manipulador.</p></div>
+          <div class="agent"><div class="an">Coordinador de cierre</div><p>Orquesta escribano/notario, banco, seguros y firmas. Checklist vivo del proceso.</p></div>
+          <div class="agent"><div class="an">Simulador financiero</div><p>Crédito, cuota, costos de escritura e impuestos, escenarios. Poder de compra real.</p></div>
+          <div class="agent"><div class="an">Auditor de claridad</div><p>Revisa que ambas partes vean la misma información y señala lo que falta o no está verificado.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="lh"><span class="lnum">CAPA 3</span><h4>Puente de confianza — lo que hace simétrico al mercado</h4></div>
+      <div class="lb">
+        <p style="margin-top:0">La pieza que ataca directamente el "mercado de limones": <strong>ambas partes ven el mismo expediente, al mismo tiempo</strong>, con un historial que no se puede maquillar.</p>
+        <div class="chips">
+          <span class="chip">Verificación de identidad de ambas partes</span>
+          <span class="chip">Pasaporte digital del inmueble (verificado)</span>
+          <span class="chip">Historial inmutable de la operación</span>
+          <span class="chip">Custodia / escrow de seña y fondos</span>
+          <span class="chip">Transparencia bilateral · misma info a los dos lados</span>
+          <span class="chip">Trazabilidad de cada dato → su fuente</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:38px">Dos productos, un mercado</h3>
+  <p>La misma plataforma le da a cada lado su propio copiloto, con su propio interés. Eso —y no un tablón de anuncios compartido— es lo que rompe la asimetría.</p>
+
+  <div class="duo">
+    <div class="side">
+      <h4>Para el vendedor</h4>
+      <div class="who">Su agente de IA trabaja para vender bien, no rápido y barato</div>
+      <ul>
+        <li><b>Valuación explicable</b> con rango, comparables reales y nivel de confianza —no un número opaco.</li>
+        <li><b>Pasaporte digital verificado</b> del inmueble: subís los papeles una vez y la plataforma los valida y ordena.</li>
+        <li><b>Pricing dinámico</b> con señales de demanda real (visitas, guardados, ofertas) en vez de intuición.</li>
+        <li><b>Staging y fichas generadas por IA</b> honestas: destacan lo bueno sin ocultar lo relevante.</li>
+        <li><b>Gestión transparente de ofertas</b>: todas las ofertas y su estado, sin el agente como cuello de botella.</li>
+        <li><b>Fee de éxito bajo</b>: pagás sobre el resultado, no una comisión del 3–6%.</li>
+      </ul>
+    </div>
+    <div class="side">
+      <h4>Para el comprador</h4>
+      <div class="who">Su agente de IA trabaja para que pague lo justo</div>
+      <ul>
+        <li><b>Perfil de necesidades real</b> (vida, trabajo, familia, presupuesto) y matching semántico, no solo filtros.</li>
+        <li><b>Due diligence automática</b>: título, deudas, gravámenes y riesgos marcados antes de enamorarse.</li>
+        <li><b>Score de riesgo y de precio</b>: ¿está caro o barato vs. comparables? ¿qué banderas rojas tiene?</li>
+        <li><b>Simulación financiera</b> instantánea: crédito, cuota, costos totales de la operación.</li>
+        <li><b>Asistente de negociación</b> con argumentos basados en datos, del lado del comprador.</li>
+        <li><b>Checklist de cierre</b> guiado paso a paso hasta la escritura.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <span class="tag">El diferencial defendible</span>
+    <p>Cualquiera clona una UI o conecta un modelo de lenguaje. Lo que no se clona rápido es <strong>(a)</strong> el dataset verificado de operaciones, títulos y deudas que se acumula con cada transacción, y <strong>(b)</strong> la confianza de que la información es real y simétrica. Esos dos activos se refuerzan: más transacciones → mejor dato → mejores valuaciones y verificación → más confianza → más transacciones. Ese es el volante de inercia.</p>
+  </div>
+</section></div></div>
+
+<!-- 06 -->
+<div class="wrap"><section id="negocio">
+  <div class="sec-head">
+    <div class="num">PARTE 06</div>
+    <h2>Modelo de negocio y entrada al mercado</h2>
+    <p class="dek">La estrategia de captura de valor está dictada por las lecciones de la Parte 04: asset-light, alineado por incentivos y con foco geográfico.</p>
+  </div>
+
+  <h3>Cómo se monetiza (sin repetir los errores)</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Fuente de ingreso</th><th>Lógica</th><th>Riesgo que evita</th></tr></thead>
+    <tbody>
+      <tr><td>Fee de éxito bajo</td><td>Un % chico al cerrar, muy por debajo del 3–6% tradicional</td><td><span class="pill p-good">Alinea: cobrás si hay operación buena</span></td></tr>
+      <tr><td>Verificación premium</td><td>Pasaporte digital verificado, due diligence profunda</td><td><span class="pill p-good">Monetiza el dato, no el balance</span></td></tr>
+      <tr><td>Servicios en el cierre</td><td>Referidos a crédito, seguros, escribanía (partners)</td><td><span class="pill p-good">Margen sin tomar inventario</span></td></tr>
+      <tr><td>Suscripción para profesionales</td><td>Herramientas para desarrolladores e inmobiliarias que quieran usar la infra</td><td><span class="pill p-warn">Cuidar no volverte "software para agentes"</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <p><strong>Evitá explícitamente:</strong> el fee fijo pagadero salga o no la venta (mató a Purplebricks) y la compra de inventario para revender (fundió a Zillow Offers). Ambos rompen la alineación o exponen el balance.</p>
+
+  <h3>Cómo se arranca: profundidad antes que amplitud</h3>
+  <p>El dato verificado no escala globalmente de un día para otro: depende de fuentes locales (registro, catastro, operaciones reales). Por eso la estrategia ganadora es <strong>dominar un mercado geográfico y un segmento primero</strong> —donde puedas construir el dataset completo y el volante de confianza— y recién después replicar. QuintoAndar empezó por alquiler en Brasil; Habi, por precios en Colombia. La opacidad de LatAm, que parece un obstáculo, es en realidad la ventaja: donde no hay transparencia, quien la construye se vuelve infraestructura.</p>
+
+  <div class="callout gold">
+    <span class="tag">Elección de cuña (wedge)</span>
+    <p>Elegí <strong>una ciudad y un segmento con dolor agudo de confianza</strong> —por ejemplo, usados en un rango de precio donde la asimetría (deudas, títulos, valuación) es máxima. Ahí tu propuesta de "claridad total verificada" vale más que en una torre nueva homogénea, donde el precio ya es casi de lista y competís contra la liquidez.</p>
+  </div>
+</section></div>
+
+<!-- 07 -->
+<div class="band"><div class="wrap"><section id="gaps">
+  <div class="sec-head">
+    <div class="num">PARTE 07</div>
+    <h2>Puntos de mejora abiertos — tu ventana</h2>
+    <p class="dek">Dónde la industria todavía no resolvió bien el problema. Cada hueco es una razón para que tu producto exista.</p>
+  </div>
+
+  <div class="principles" style="counter-reset:pr">
+    <div class="principle"><div><h4>Valuaciones que son cajas negras</h4><p>El Zestimate y la mayoría de los AVM dan un número sin explicar por qué, y sesgan por barrio (Urban Institute lo documentó). <strong>Hueco:</strong> valuación explicable, con comparables a la vista, rango de confianza y auditoría de sesgo —justo lo que ahora exige el regulador.</p></div></div>
+    <div class="principle"><div><h4>Verificación de título y prevención de fraude</h4><p>Casi nadie automatizó la detección de problemas de título, deudas ocultas o fraude documental de forma accesible al usuario final. <strong>Hueco:</strong> el "pasaporte verificado" como estándar de confianza previo a cualquier oferta.</p></div></div>
+    <div class="principle"><div><h4>Negociación asistida y transparente para ambos</h4><p>La IA hoy asiste al agente vendedor. <strong>Hueco:</strong> darle al comprador un asistente de negociación con datos de su lado, y hacer el proceso simétrico en vez de un juego de información oculta.</p></div></div>
+    <div class="principle"><div><h4>Los mercados que los iBuyers evitaron</h4><p>Los algoritmos huyen de lo difícil de valuar —justo donde la información escasea y más se necesita. <strong>Hueco:</strong> servir esos activos únicos con claridad verificable en lugar de precio automático.</p></div></div>
+    <div class="principle"><div><h4>Integración legal-notarial de punta a punta</h4><p>El cierre sigue siendo un laberinto de escribano, banco y trámites desconectados. <strong>Hueco:</strong> orquestar todo el proceso posterior a la oferta en un solo flujo trazable.</p></div></div>
+    <div class="principle"><div><h4>El lado emocional y la contención</h4><p>Es la caja "no automatizable". <strong>Hueco:</strong> no pretender reemplazarla, sino reducir la ansiedad con transparencia total —la incertidumbre es la que genera el estrés, y la claridad la disuelve.</p></div></div>
+  </div>
+</section></div></div>
+
+<!-- 08 -->
+<div class="wrap"><section id="riesgos">
+  <div class="sec-head">
+    <div class="num">PARTE 08</div>
+    <h2>Riesgos y mitigaciones</h2>
+    <p class="dek">Lo que puede salir mal, y cómo diseñar para que no.</p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Riesgo</th><th>Por qué importa</th><th>Mitigación de diseño</th></tr></thead>
+    <tbody>
+      <tr><td>Sesgo algorítmico / discriminación</td><td>Los AVM sesgan por demografía de barrio; hay reglas (CFPB, fair housing) que lo penalizan</td><td>Auditoría de sesgo, testing aleatorio, explicabilidad, humano en el loop</td></tr>
+      <tr><td>Responsabilidad legal por errores</td><td>Un error de valuación o de due diligence puede costar caro y generar demandas</td><td>Rangos con confianza declarada, verificación profesional en pasos críticos, seguros</td></tr>
+      <tr><td>Arranque en frío de datos</td><td>Sin transacciones no hay comparables ni volante</td><td>Sembrar con datos públicos + un segmento/ciudad estrecho para densificar rápido</td></tr>
+      <tr><td>Regulación de intermediación</td><td>Ley 20.266 y colegios profesionales en LatAm</td><td>Encuadre como infra de datos/software; integrar al matriculado como rol, no dueño</td></tr>
+      <tr><td>Confianza en IA para decisiones grandes</td><td>Comprar una casa es la mayor decisión financiera de una vida</td><td>Transparencia radical: mostrar fuentes, dejar auditar cada número, no "magia"</td></tr>
+      <tr><td>Ciclo inmobiliario y capital</td><td>Golpeó a toda la camada proptech 2023–24</td><td>Nacer asset-light y eficiente en capital; no depender de comprar inventario</td></tr>
+    </tbody>
+  </table></div>
+</section></div>
+
+<!-- 09 -->
+<div class="band"><div class="wrap"><section id="roadmap">
+  <div class="sec-head">
+    <div class="num">PARTE 09</div>
+    <h2>Roadmap 0 → 1</h2>
+    <p class="dek">De una herramienta de claridad a una red con volante de inercia. Cada fase debe ser valiosa por sí sola aunque no llegues a la siguiente.</p>
+  </div>
+  <div class="road">
+    <div class="phase"><div class="pt">Fase 0 · Cuña de confianza</div><h4>El "pasaporte del inmueble" como producto gancho</h4><p>Una herramienta que, dado un inmueble, arma su expediente verificado (título, deudas, comparables, riesgos) y una valuación explicable. Gratis o barata, genera confianza y empieza a acumular dato. Resuelve dolor aunque no haya transacción.</p></div>
+    <div class="phase"><div class="pt">Fase 1 · Los dos copilotos</div><h4>Agentes de IA para comprador y vendedor</h4><p>Sobre el expediente, sumás el matchmaker, el simulador financiero, el concierge de visitas y el asistente de negociación. Ya hay dos lados usando la plataforma con intereses propios.</p></div>
+    <div class="phase"><div class="pt">Fase 2 · El puente y el cierre</div><h4>Transacción de punta a punta</h4><p>Custodia/escrow, orquestación de escribano/banco/seguros y el historial inmutable. Acá empezás a cobrar fee de éxito y servicios de cierre. La transacción entera vive en la plataforma.</p></div>
+    <div class="phase"><div class="pt">Fase 3 · La red</div><h4>Volante de inercia de datos</h4><p>Cada operación mejora el dataset, que mejora valuaciones y verificación, que atrae más operaciones. Recién ahora replicás a nuevas ciudades y explorás extensiones (inversión fraccional, financiamiento propio).</p></div>
+  </div>
+
+  <div class="callout" style="margin-top:34px">
+    <span class="tag">La única frase para recordar</span>
+    <p>No estás construyendo un mejor portal de avisos ni un iBuyer más inteligente. Estás construyendo la <strong>capa de confianza e información simétrica</strong> que el mercado inmobiliario nunca tuvo —y dejando que la IA haga el trabajo que antes justificaba una comisión del 6%.</p>
+  </div>
+</section></div></div>
+
+<!-- SOURCES -->
+<div class="wrap"><section id="fuentes">
+  <div class="sec-head"><div class="num">FUENTES</div><h2>Referencias</h2>
+  <p class="dek">Selección de las fuentes consultadas para este informe (julio 2026). Los datos financieros y regulatorios son de reportes públicos y prensa especializada.</p></div>
+  <ol class="sources">
+    <li>Stanford GSB — <a href="https://www.gsb.stanford.edu/insights/flip-flop-why-zillows-algorithmic-home-buying-venture-imploded">Flip Flop: Why Zillow's Algorithmic Home Buying Venture Imploded</a></li>
+    <li>Robust Intelligence — <a href="https://www.robustintelligence.com/blog-posts/zillows-ibuying-failures">Zillow's iBuying Failures &amp; Lessons Learned</a></li>
+    <li>FinancialContent — <a href="https://www.financialcontent.com/article/finterra-2026-2-19-opendoor-20-from-the-brink-of-delisting-to-the-ai-native-future-of-real-estate">Opendoor 2.0: From the Brink of Delisting to the AI-Native Future</a></li>
+    <li>AInvest — <a href="https://www.ainvest.com/news/opendoor-strategic-pivot-founder-return-turning-point-long-term-2509/">Opendoor's Strategic Pivot and Founder Return</a></li>
+    <li>Online Marketplaces — <a href="https://www.onlinemarketplaces.com/articles/opendoor-q1-2026-acquisitions-double-as-ai-and-agent-pivot-gains-traction/">Opendoor Q1 2026: AI and Agent Pivot Gains Traction</a></li>
+    <li>HousingWire — <a href="https://www.housingwire.com/articles/nar-commission-lawsuit-settlement-approved-doj-homeservices-keller-williams-3/">NAR's settlement receives final approval</a></li>
+    <li>HousingWire — <a href="https://www.housingwire.com/articles/compass-second-quarter-2024-earnings-nar-settlement/">Reffkin: fears over agent commissions have not materialized</a></li>
+    <li>Bloomberg Law — <a href="https://news.bloomberglaw.com/antitrust/redfin-compass-gain-approval-for-settlement-in-commissions-case">Redfin, Compass Gain Approval for Settlement in Commissions Case</a></li>
+    <li>Property Industry Eye — <a href="https://propertyindustryeye.com/opinion-is-the-purplebricks-wall-collapsing/">Is the Purplebricks wall collapsing?</a></li>
+    <li>HousingWire — <a href="https://www.housingwire.com/articles/49508-flat-fee-real-estate-agency-purplebricks-shuttering-us-business/">Flat-fee agency Purplebricks shuttering U.S. business</a></li>
+    <li>TechCrunch — <a href="https://techcrunch.com/2021/08/20/sao-paulos-quintoandar-real-estate-platform-raises-120m-now-valued-at-5-1b/">QuintoAndar valued at $5.1B</a></li>
+    <li>CB Insights — <a href="https://www.cbinsights.com/research/habi-competitors-emcasa-flat-mx-la-haus-quintoandar-truehome/">Habi hits $1B valuation; LatAm proptech landscape</a></li>
+    <li>Reademergent — <a href="https://www.reademergent.com/p/quintoandar-brazils-proptech-champion">QuintoAndar: Brazil's Proptech Champion</a></li>
+    <li>Wikipedia / tutor2u — <a href="https://en.wikipedia.org/wiki/The_Market_for_Lemons">Akerlof, "The Market for Lemons" (1970)</a></li>
+    <li>The Conversation — <a href="https://theconversation.com/use-of-ai-in-property-valuation-is-on-the-rise-but-we-need-greater-transparency-and-trust-240880">AI property valuation: we need transparency and trust</a></li>
+    <li>Cotality — <a href="https://www.cotality.com/resources/article/federal-avm-ruling">CFPB AVM Final Rule (vigente oct-2025)</a></li>
+    <li>Homesage.ai — <a href="https://homesage.ai/resources/blog/guide-automated-property-valuation-systems-for-lenders-2026/">Enterprise Guide to AVMs for Lenders (accuracy 5–10%)</a></li>
+    <li>4IRE Labs / Deloitte — <a href="https://4irelabs.com/articles/real-estate-tokenization/">Real Estate Tokenization: $4T market by 2035</a></li>
+    <li>HousingWire — <a href="https://www.housingwire.com/articles/the-ai-future-of-real-estate-runs-straight-through-the-mls/">Agentic AI sets 36-month clock for real estate power shift</a></li>
+    <li>PR Newswire — <a href="https://www.prnewswire.com/news-releases/popstore-launches-agentic-ai-concierge-for-real-estate-brokers-and-agents-302750968.html">POP.STORE launches Agentic AI Concierge</a></li>
+    <li>Argentina.gob.ar — <a href="https://servicios.infoleg.gob.ar/infolegInternet/anexos/55000-59999/56724/texact.htm">Ley 20.266 — Martilleros y corredores</a></li>
+    <li>El Cronista — <a href="https://www.cronista.com/economia-politica/el-gobierno-avanza-con-la-desregulacion-inmobiliaria-que-cambia-y-que-riesgos-hay-segun-martilleros/">Desregulación inmobiliaria en Argentina: qué cambia</a></li>
+  </ol>
+</section></div>
+
+<footer><div class="wide">
+  <span>Claridad Total · Informe estratégico Proptech &amp; IA</span>
+  <span class="note">Preparado para Sebastián · Julio 2026</span>
+</div></footer>
+
+<script>
+  // Respeta el toggle de tema del visor por encima del prefers-color-scheme.
+  (function(){
+    try{
+      var root=document.documentElement;
+      var mq=window.matchMedia('(prefers-color-scheme: dark)');
+      // Nada que forzar: los tokens ya responden a prefers-color-scheme y a data-theme.
+    }catch(e){}
+  })();
+</script>
