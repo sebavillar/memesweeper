@@ -1,8 +1,13 @@
-# Agente de WhatsApp para compradores — Fase 0
+# Agente de WhatsApp para compradores — Fase 0 + Fase 1
 
-Esqueleto ejecutable del agente de IA que atiende consultas de compradores por
-WhatsApp sobre el inventario propio. Stack: **FastAPI + WhatsApp Cloud API (Meta) +
-Claude con tool use**. Corresponde a la Fase 0 del plan de desarrollo (`04-plan-agente-whatsapp`).
+Agente de IA que atiende consultas de compradores por WhatsApp sobre el inventario
+propio. Stack: **FastAPI + WhatsApp Cloud API (Meta) + Claude con tool use**.
+
+- **Fase 0:** webhook, agente con tool use, inventario, CLI de prueba.
+- **Fase 1:** envío de **fotos nativas**, **calificación de leads** (caliente/tibio/frío),
+  **panel del corredor** (`/panel`), **plantillas de re-engagement** y **scripts de provisión de Meta**.
+
+Para la configuración completa de Meta, ver **[`META_SETUP.md`](./META_SETUP.md)**.
 
 ## Qué hace
 
@@ -26,11 +31,28 @@ whatsapp-agent/
 │   ├── store.py         # persistencia JSON: conversaciones, leads, visitas
 │   ├── models.py        # ficha/resumen de propiedad
 │   └── config.py        # settings desde .env
+│   ├── leadscoring.py   # calificación de leads (Fase 1)
+│   └── panel.py         # panel del corredor: leads + visitas (Fase 1)
 ├── data/inventario.json # inventario de muestra (Mendoza)
-├── scripts/chat_cli.py  # probar el agente en la terminal (sin WhatsApp)
+├── meta/templates.py    # plantillas de mensaje para aprobar en Meta (Fase 1)
+├── scripts/
+│   ├── chat_cli.py            # probar el agente en la terminal (sin WhatsApp)
+│   ├── meta_register_phone.py     # registrar el número (Cloud API)
+│   ├── meta_subscribe_webhook.py  # suscribir la app a la WABA
+│   ├── meta_create_templates.py   # crear/aprobar plantillas
+│   ├── meta_send_template.py       # enviar una plantilla (re-engagement)
+│   └── send_visit_reminders.py     # recordatorios de visita (cron)
+├── META_SETUP.md        # runbook completo de Meta
 ├── requirements.txt
 └── .env.example
 ```
+
+## Panel del corredor (Fase 1)
+
+Con el server levantado, abrí **`http://localhost:8000/panel`**: leads calificados por
+temperatura (🔥 caliente / 🟡 tibio / ⚪ frío), visitas agendadas y estado del inventario.
+APIs JSON: `/panel/api/leads` y `/panel/api/visitas`.
+> En producción va detrás de autenticación.
 
 ## Puesta en marcha
 

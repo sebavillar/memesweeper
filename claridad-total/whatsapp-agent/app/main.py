@@ -13,12 +13,14 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 
 from . import agent
 from .config import settings
+from .panel import router as panel_router
 from .whatsapp import send_text
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("main")
 
-app = FastAPI(title="Claridad Total · Agente de WhatsApp", version="0.1.0")
+app = FastAPI(title="Claridad Total · Agente de WhatsApp", version="0.2.0")
+app.include_router(panel_router)
 
 
 @app.get("/health")

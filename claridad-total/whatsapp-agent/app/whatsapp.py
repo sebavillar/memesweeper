@@ -39,6 +39,60 @@ def send_text(to: str, body: str) -> dict[str, Any]:
     return resp.json()
 
 
+def send_image(to: str, link: str, caption: str | None = None) -> dict[str, Any]:
+    """Envía una imagen nativa de WhatsApp. `link` debe ser una URL pública HTTPS
+    accesible por Meta (jpg/png). Dentro de la ventana de 24 h es gratuito."""
+    if not settings.whatsapp_ready:
+        log.info("[SIMULACIÓN] 🖼️ → %s: %s (%s)", to, link, caption or "")
+        return {"simulated": True, "to": to, "image": link, "caption": caption}
+    image: dict[str, Any] = {"link": link}
+    if caption:
+        image["caption"] = caption
+    payload = {"messaging_product": "whatsapp", "to": to, "type": "image", "image": image}
+    resp = httpx.post(settings.graph_url, headers=_headers(), json=payload, timeout=30)
+    if resp.status_code >= 400:
+        log.error("Error enviando imagen a %s: %s %s", to, resp.status_code, resp.text)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def send_images(to: str, links: list[str], caption: str | None = None) -> None:
+    """Envía varias fotos: la primera lleva el caption, el resto van sin texto."""
+    for i, link in enumerate(links):
+        send_image(to, link, caption if i == 0 else None)
+
+
+def send_template(
+    to: str,
+    template_name: str,
+    variables: list[str] | None = None,
+    lang: str | None = None,
+) -> dict[str, Any]:
+    """Envía una plantilla aprobada (para reabrir conversación fuera de las 24 h).
+    `variables` completa los {{1}}, {{2}}, ... del cuerpo en orden."""
+    components = []
+    if variables:
+        components.append({
+            "type": "body",
+            "parameters": [{"type": "text", "text": str(v)} for v in variables],
+        })
+    template: dict[str, Any] = {
+        "name": template_name,
+        "language": {"code": lang or settings.template_lang},
+    }
+    if components:
+        template["components"] = components
+    if not settings.whatsapp_ready:
+        log.info("[SIMULACIÓN] 📄 plantilla '%s' → %s vars=%s", template_name, to, variables)
+        return {"simulated": True, "to": to, "template": template_name, "variables": variables}
+    payload = {"messaging_product": "whatsapp", "to": to, "type": "template", "template": template}
+    resp = httpx.post(settings.graph_url, headers=_headers(), json=payload, timeout=20)
+    if resp.status_code >= 400:
+        log.error("Error enviando plantilla a %s: %s %s", to, resp.status_code, resp.text)
+    resp.raise_for_status()
+    return resp.json()
+
+
 def notify_corredor(body: str) -> None:
     """Aviso interno al corredor (visita agendada / handoff). Requiere una
     plantilla aprobada si está fuera de su ventana de 24 h; en Fase 0 se asume

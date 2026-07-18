@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from . import inventory, store, whatsapp
+from . import inventory, leadscoring, store, whatsapp
 from .models import propiedad_ficha, propiedad_resumen
 
 log = logging.getLogger("tools")
@@ -137,17 +137,18 @@ def dispatch(name: str, args: dict[str, Any], wa_id: str) -> dict[str, Any]:
         p = inventory.get(args["propiedad_id"])
         if not p:
             return {"error": "No existe esa propiedad."}
-        # En Fase 0 se envía la ficha como texto + link de fotos. El envío de
-        # imágenes nativas de WhatsApp se agrega en Fase 1.
+        # Fase 1: envío de fotos nativas de WhatsApp. La primera lleva el resumen
+        # como caption; las demás van a continuación. Requiere URLs públicas HTTPS.
         ficha = propiedad_ficha(p)
         fotos = ficha.get("fotos") or []
-        cuerpo = propiedad_resumen(p)
+        caption = propiedad_resumen(p)
         if p.get("descripcion"):
-            cuerpo += f"\n\n{p['descripcion']}"
+            caption += f"\n\n{p['descripcion']}"
         if fotos:
-            cuerpo += f"\n\n📸 Fotos: {fotos[0]}"
-        whatsapp.send_text(wa_id, cuerpo)
-        return {"enviada": True, "ficha": ficha}
+            whatsapp.send_images(wa_id, fotos, caption=caption)
+        else:
+            whatsapp.send_text(wa_id, caption)
+        return {"enviada": True, "fotos": len(fotos), "ficha": ficha}
 
     if name == "agendar_visita":
         p = inventory.get(args["propiedad_id"])
@@ -160,15 +161,23 @@ def dispatch(name: str, args: dict[str, Any], wa_id: str) -> dict[str, Any]:
             "telefono": args.get("telefono", wa_id),
         }
         store.add_visita(visita)
+        # Agendar una visita califica fuerte al lead.
+        lead = store.upsert_lead(wa_id, {"visita_agendada": True,
+                                          "nombre": args.get("nombre"),
+                                          "telefono": args.get("telefono")})
+        calif = leadscoring.calificar(lead)
+        store.upsert_lead(wa_id, {"temperatura": calif["temperatura"], "score": calif["score"]})
         whatsapp.notify_corredor(
-            f"🗓️ Visita agendada: {visita['propiedad']} — {visita['fecha_hora']} "
-            f"— {visita.get('nombre') or 'comprador'} ({visita['telefono']})"
+            f"🗓️ Visita agendada [{calif['temperatura'].upper()}]: {visita['propiedad']} — "
+            f"{visita['fecha_hora']} — {visita.get('nombre') or 'comprador'} ({visita['telefono']})"
         )
-        return {"agendada": True, "visita": visita}
+        return {"agendada": True, "visita": visita, "calificacion": calif}
 
     if name == "registrar_lead":
         lead = store.upsert_lead(wa_id, args)
-        return {"registrado": True, "lead": lead}
+        calif = leadscoring.calificar(lead)
+        lead = store.upsert_lead(wa_id, {"temperatura": calif["temperatura"], "score": calif["score"]})
+        return {"registrado": True, "lead": lead, "calificacion": calif}
 
     if name == "derivar_a_humano":
         store.upsert_lead(wa_id, {"handoff": True, "handoff_motivo": args["motivo"]})

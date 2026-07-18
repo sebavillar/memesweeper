@@ -53,9 +53,19 @@ def upsert_lead(wa_id: str, campos: dict[str, Any]) -> dict[str, Any]:
         return lead
 
 
+def list_leads() -> list[dict[str, Any]]:
+    with _LOCK:
+        return list(_read("_leads").values())
+
+
 # ---- Visitas ----
 def add_visita(visita: dict[str, Any]) -> None:
     with _LOCK:
         data = _read("_visitas")
         data.setdefault("visitas", []).append(visita)
         _write("_visitas", data)
+
+
+def list_visitas() -> list[dict[str, Any]]:
+    with _LOCK:
+        return _read("_visitas").get("visitas", [])

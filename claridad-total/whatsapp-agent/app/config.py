@@ -11,7 +11,9 @@ class Settings(BaseSettings):
     whatsapp_verify_token: str = "claridad-total-verify"
     whatsapp_access_token: str = ""
     whatsapp_phone_number_id: str = ""
+    whatsapp_business_account_id: str = ""  # WABA ID (para webhooks y plantillas)
     graph_api_version: str = "v21.0"
+    template_lang: str = "es_AR"  # idioma por defecto de las plantillas
 
     # Claude
     anthropic_api_key: str = ""
@@ -21,11 +23,12 @@ class Settings(BaseSettings):
     corredor_notify_number: str = ""
 
     @property
+    def graph_base(self) -> str:
+        return f"https://graph.facebook.com/{self.graph_api_version}"
+
+    @property
     def graph_url(self) -> str:
-        return (
-            f"https://graph.facebook.com/{self.graph_api_version}"
-            f"/{self.whatsapp_phone_number_id}/messages"
-        )
+        return f"{self.graph_base}/{self.whatsapp_phone_number_id}/messages"
 
     @property
     def whatsapp_ready(self) -> bool:
