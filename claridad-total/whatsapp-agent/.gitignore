@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+# Datos generados en runtime (Fase 0 los guarda como JSON)
+data/_conversations.json
+data/_leads.json
+data/_visitas.json
