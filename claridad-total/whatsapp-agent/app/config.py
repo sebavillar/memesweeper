@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     whatsapp_business_account_id: str = ""  # WABA ID (para webhooks y plantillas)
     graph_api_version: str = "v21.0"
     template_lang: str = "es_AR"  # idioma por defecto de las plantillas
+    whatsapp_ar_15: bool = False  # número de PRUEBA con celulares AR en formato viejo (15)
 
     # Claude
     anthropic_api_key: str = ""

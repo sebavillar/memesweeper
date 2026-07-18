@@ -20,17 +20,19 @@ def _headers() -> dict[str, str]:
 
 
 def _ar_msisdn(to: str) -> str:
-    """Normaliza números de Argentina para ENVIAR.
+    """Formato del destinatario para Argentina.
 
-    WhatsApp entrega el remitente con un 9 tras el código de país (549XXXXXXXXXX),
-    pero la Cloud API espera el número SIN ese 9 al enviar (54XXXXXXXXXX). Sin esta
-    corrección, los envíos a celulares argentinos fallan con
-    '(#131030) Recipient phone number not in allowed list' o no se entregan.
-    Es un comportamiento conocido y específico de Argentina."""
+    Por defecto se responde al wa_id tal cual (lo canónico, y lo que funciona con
+    un número de PRODUCCIÓN real). El número de PRUEBA de Meta, en cambio, suele
+    registrar los celulares argentinos en el viejo formato doméstico con '15'
+    (54 + área + 15 + abonado). Para esos casos, con WHATSAPP_AR_15=1 se
+    transforma 549XXXXXXXXXX -> 54 + área + 15 + abonado."""
     d = (to or "").lstrip("+")
-    if d.startswith("549") and len(d) == 13:
-        return "54" + d[3:]
-    return d
+    if not (settings.whatsapp_ar_15 and d.startswith("549") and len(d) == 13):
+        return d
+    national = d[3:]                       # 10 dígitos: área + abonado
+    area_len = 2 if national.startswith("11") else 3   # AMBA=11 (2), resto ~3 (Mendoza=261)
+    return "54" + national[:area_len] + "15" + national[area_len:]
 
 
 def send_text(to: str, body: str) -> dict[str, Any]:
