@@ -22,6 +22,7 @@ class Settings(BaseSettings):
 
     # Negocio
     corredor_notify_number: str = ""
+    panel_password: str = ""  # si se define, el panel pide esta clave (usuario libre)
 
     @property
     def graph_base(self) -> str:

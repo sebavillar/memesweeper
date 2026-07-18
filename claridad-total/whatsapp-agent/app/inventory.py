@@ -3,11 +3,19 @@ PostgreSQL + pgvector (búsqueda semántica). La interfaz de búsqueda se mantie
 from __future__ import annotations
 
 import json
+import os
 import unicodedata
 from pathlib import Path
 from typing import Any
 
-DATA_FILE = Path(__file__).resolve().parent.parent / "data" / "inventario.json"
+_BUNDLED = Path(__file__).resolve().parent.parent / "data" / "inventario.json"
+
+
+def _file() -> Path:
+    """Archivo de inventario EDITABLE. En producción vive en el disco persistente
+    (DATA_DIR) para poder actualizarlo desde el panel sin reconstruir la imagen."""
+    data_dir = os.environ.get("DATA_DIR")
+    return (Path(data_dir) / "inventario.json") if data_dir else _BUNDLED
 
 # Sinónimos de zonas para tolerar cómo escribe la gente en el chat.
 ZONA_ALIAS = {
@@ -31,12 +39,52 @@ def _norm(s: str) -> str:
 
 
 def load() -> list[dict[str, Any]]:
-    with open(DATA_FILE, encoding="utf-8") as fh:
-        return json.load(fh)
+    f = _file()
+    if not f.exists():
+        # Primera vez: sembrar el archivo editable desde el inventario de muestra.
+        try:
+            seed = json.loads(_BUNDLED.read_text(encoding="utf-8")) if _BUNDLED.exists() else []
+        except Exception:  # noqa: BLE001
+            seed = []
+        save(seed)
+        return seed
+    return json.loads(f.read_text(encoding="utf-8"))
+
+
+def save(props: list[dict[str, Any]]) -> None:
+    f = _file()
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(json.dumps(props, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def get(prop_id: str) -> dict[str, Any] | None:
     return next((p for p in load() if p["id"] == prop_id), None)
+
+
+def next_id() -> str:
+    nums = [int(p["id"][2:]) for p in load()
+            if str(p.get("id", "")).startswith("P-") and p["id"][2:].isdigit()]
+    return "P-%04d" % ((max(nums) + 1) if nums else 1)
+
+
+def add(prop: dict[str, Any]) -> dict[str, Any]:
+    props = load()
+    prop["id"] = next_id()
+    props.append(prop)
+    save(props)
+    return prop
+
+
+def set_estado(prop_id: str, estado: str) -> None:
+    props = load()
+    for p in props:
+        if p["id"] == prop_id:
+            p["estado"] = estado
+    save(props)
+
+
+def delete(prop_id: str) -> None:
+    save([p for p in load() if p["id"] != prop_id])
 
 
 def buscar(
