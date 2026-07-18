@@ -14,7 +14,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent
+from . import agent, db
 from .config import settings
 from .panel import router as panel_router
 from .whatsapp import send_text
@@ -30,6 +30,8 @@ app.include_router(panel_router)
 MEDIA_DIR = Path(os.environ.get("DATA_DIR") or "data") / "media"
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
+
+db.init()  # base de datos de mercado (comparables de oferta)
 
 
 @app.get("/health")

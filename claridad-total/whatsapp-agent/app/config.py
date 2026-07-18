@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     panel_password: str = ""  # si se define, el panel pide esta clave (usuario libre)
     agent_domain: str = ""    # dominio público (para URLs de fotos servidas por el server)
 
+    # MercadoLibre (datos de oferta reales)
+    meli_client_id: str = ""
+    meli_client_secret: str = ""
+    meli_access_token: str = ""  # opcional: token manual en vez de client_credentials
+
     @property
     def graph_base(self) -> str:
         return f"https://graph.facebook.com/{self.graph_api_version}"

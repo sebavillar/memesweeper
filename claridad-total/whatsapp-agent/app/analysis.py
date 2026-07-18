@@ -6,10 +6,11 @@ Pasaporte) + comparables tomados del propio inventario. Cada número viene con s
 portales se conecta en una fase posterior; la interfaz ya está preparada para eso."""
 from __future__ import annotations
 
+import statistics
 import unicodedata
 from typing import Any
 
-from . import inventory
+from . import db, inventory
 
 # USD/m² de referencia por zona (calibración de muestra Mendoza 2025).
 _ZONA_M2 = {
@@ -33,15 +34,33 @@ def _zona_m2(p: dict[str, Any]) -> tuple[int, str]:
     return _DEFAULT_M2, _norm(p.get("departamento") or "zona")
 
 
+def _market_stats(p: dict[str, Any]) -> dict[str, Any] | None:
+    """USD/m² real de la oferta de MercadoLibre para el tipo y zona del inmueble."""
+    comps = db.query(tipo=(p.get("tipo") or "").lower(), departamento=p.get("departamento"),
+                     operacion="venta", solo_con_m2=True, limit=60)
+    ppms = [c["precio_usd"] / c["m2_cubierta"] for c in comps
+            if c.get("m2_cubierta") and c.get("precio_usd")]
+    if len(ppms) < 3:
+        return None
+    return {"n": len(ppms), "mediana_ppm": statistics.median(ppms)}
+
+
 def valuar(p: dict[str, Any]) -> dict[str, Any]:
     """Devuelve valor estimado + rango + confianza + factores + comparables."""
     m2, zona_clave = _zona_m2(p)
     cub = p.get("sup_cubierta") or 0
-    pasos: list[dict[str, Any]] = []
 
+    # Calibración con datos reales de oferta (MercadoLibre) cuando hay muestra suficiente.
+    market = _market_stats(p)
+    fuente_m2 = "referencia de zona"
+    if market:
+        m2 = round(market["mediana_ppm"])
+        fuente_m2 = f"mediana de {market['n']} publicaciones · MercadoLibre"
+
+    pasos: list[dict[str, Any]] = []
     base = cub * m2
     pasos.append({"label": "Base por superficie",
-                  "detalle": f"{cub} m² × US$ {m2:,}/m²".replace(",", "."), "val": base})
+                  "detalle": f"{cub} m² × US$ {m2:,}/m² · {fuente_m2}".replace(",", "."), "val": base})
 
     anti = p.get("antiguedad")
     if anti is not None:
@@ -76,21 +95,30 @@ def valuar(p: dict[str, Any]) -> dict[str, Any]:
         "confianza": round(conf * 100), "n_comparables": n,
         "zona_m2": m2, "factores": [{**s, "val": round(s["val"])} for s in pasos],
         "comparables": comps,
-        "fuentes": {"valuacion": "heurística (estimación)",
-                    "comparables": "inventario propio",
-                    "catastro": "pendiente de integración (ATM/IDE Mendoza)",
-                    "portales": "pendiente de integración (scraping)"},
+        "fuentes": {"valuacion": "heurística calibrada con oferta real" if market else "heurística (estimación)",
+                    "comparables": "MercadoLibre + inventario propio",
+                    "catastro": "no integrado (a pedido)"},
     }
 
 
-def comparables(p: dict[str, Any], limite: int = 4) -> list[dict[str, Any]]:
-    """Comparables tomados del inventario propio: mismo tipo y zona parecida."""
+def comparables(p: dict[str, Any], limite: int = 6) -> list[dict[str, Any]]:
+    """Comparables: primero oferta real de MercadoLibre (misma zona/tipo), luego
+    completamos con el inventario propio."""
+    tipo = (p.get("tipo") or "").lower()
+    out: list[dict[str, Any]] = []
+
+    for c in db.query(tipo=tipo, departamento=p.get("departamento"), operacion="venta", limit=limite):
+        cub = c.get("m2_cubierta") or 0
+        precio = c.get("precio_usd") or 0
+        out.append({"id": c.get("listing_id"), "titulo": c.get("titulo") or "Publicación",
+                    "precio_usd": precio, "ppm": round(precio / cub) if cub and precio else 0,
+                    "estado": "oferta", "source": "mercadolibre", "url": c.get("url")})
+
     _, zona = _zona_m2(p)
-    out = []
     for q in inventory.load():
-        if q.get("id") == p.get("id"):
-            continue
-        if _norm(q.get("tipo", "")) != _norm(p.get("tipo", "")):
+        if len(out) >= limite:
+            break
+        if q.get("id") == p.get("id") or _norm(q.get("tipo", "")) != _norm(p.get("tipo", "")):
             continue
         zq = _norm(f"{q.get('barrio','')} {q.get('departamento','')}")
         if zona not in zq and _norm(p.get("departamento", "")) not in zq:
@@ -98,5 +126,6 @@ def comparables(p: dict[str, Any], limite: int = 4) -> list[dict[str, Any]]:
         precio = q.get("precio_usd") or 0
         cub = q.get("sup_cubierta") or 0
         out.append({"id": q["id"], "titulo": q.get("titulo"), "precio_usd": precio,
-                    "ppm": round(precio / cub) if cub else 0, "estado": q.get("estado")})
+                    "ppm": round(precio / cub) if cub else 0, "estado": q.get("estado"),
+                    "source": "propio", "url": None})
     return out[:limite]

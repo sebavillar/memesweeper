@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-from . import analysis, images, inventory, store
+from . import analysis, db, images, inventory, store
 from .config import settings
 
 _MEDIA_DIR = Path(os.environ.get("DATA_DIR") or "data") / "media"
@@ -379,11 +379,21 @@ def inventario_detalle(prop_id: str) -> HTMLResponse:
         f'<b>{_money(fac["val"]) if fac["label"].startswith("Base") else ("+" if fac["val"]>=0 else "−")+_money(abs(fac["val"]))}</b></div>'
         for fac in val["factores"]
     )
-    comps = "".join(
-        f'<tr><td><a href="/panel/inventario/{c["id"]}" style="color:var(--acc)">{_esc(c["titulo"])}</a></td>'
-        f'<td>{_money(c["precio_usd"])}</td><td>{_money(c["ppm"])}/m²</td><td>{_esc(c["estado"])}</td></tr>'
-        for c in val["comparables"]
-    ) or '<tr><td colspan="4" class="empty">Sin comparables en tu inventario todavía.</td></tr>'
+    comp_rows = ""
+    for c in val["comparables"]:
+        if c.get("source") == "mercadolibre" and c.get("url"):
+            titulo = (f'<a href="{html.escape(c["url"])}" target="_blank" rel="noopener" style="color:var(--acc)">{_esc(c["titulo"])}</a>'
+                      ' <span class="pill" style="background:#9C6A151f;color:#9C6A15">ML</span>')
+        else:
+            titulo = (f'<a href="/panel/inventario/{c["id"]}" style="color:var(--acc)">{_esc(c["titulo"])}</a>'
+                      ' <span class="sub">· propio</span>')
+        comp_rows += (f'<tr><td>{titulo}</td><td>{_money(c["precio_usd"])}</td>'
+                      f'<td>{_money(c["ppm"])}/m²</td><td>{_esc(c["estado"])}</td></tr>')
+    comps = comp_rows or '<tr><td colspan="4" class="empty">Sin comparables todavía. Actualizá la oferta de MercadoLibre.</td></tr>'
+    mkt = db.stats()
+    mkt_note = (f"Base de oferta: {mkt['venta_usd']} publicaciones en venta (US$) · última actualización {mkt['last_fetch']}"
+                if mkt.get("last_fetch") else
+                "Todavía no cargaste oferta de MercadoLibre. Corré la actualización para calibrar con datos reales.")
 
     body = f"""
     <p class="lead"><a href="/panel/inventario">← Volver</a> &nbsp;·&nbsp; <a href="/panel/inventario/{prop_id}/editar">✏️ Editar</a></p>
@@ -412,8 +422,7 @@ def inventario_detalle(prop_id: str) -> HTMLResponse:
       <div style="margin-top:16px"><div class="sub" style="text-transform:uppercase;font-size:.68rem;margin-bottom:6px">Comparables (tu inventario)</div>
         <table><thead><tr><th>Propiedad</th><th>Precio</th><th>US$/m²</th><th>Estado</th></tr></thead><tbody>{comps}</tbody></table></div>
     </div>
-    <p class="foot">Valuación heurística (estimación). <b>Próxima integración:</b> avalúo de <b>catastro (ATM/IDE Mendoza)</b>
-    y comparables de <b>portales por scraping</b> — la interfaz ya está lista para mostrarlos aquí.</p>"""
+    <p class="foot">{mkt_note}. Fuente de oferta: <b>MercadoLibre</b> (API oficial).</p>"""
     return _page(f"Inmueble · {p.get('titulo')}", "inventario", body)
 
 
