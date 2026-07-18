@@ -1,13 +1,18 @@
-"""Persistencia simple en JSON para Fase 0: conversaciones, leads y visitas.
-En producción esto es PostgreSQL. La interfaz se mantiene igual."""
+"""Persistencia simple en JSON para Fase 0/1: conversaciones, leads y visitas.
+En producción esto es PostgreSQL. La interfaz se mantiene igual.
+
+Los datos MUTABLES (conversaciones/leads/visitas) se guardan en DATA_DIR si está
+definida (ej. un disco persistente en Render); si no, en la carpeta `data/` del
+repo. El inventario NO usa esto: se lee de `data/inventario.json` del repo."""
 from __future__ import annotations
 
 import json
+import os
 import threading
 from pathlib import Path
 from typing import Any
 
-_DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+_DATA_DIR = Path(os.environ.get("DATA_DIR") or (Path(__file__).resolve().parent.parent / "data"))
 _LOCK = threading.Lock()
 
 

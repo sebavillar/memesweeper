@@ -1,0 +1,42 @@
+# Render Blueprint para el agente de WhatsApp (Claridad Total).
+# Referencia de la configuración exacta del servicio. También podés crear el
+# servicio a mano ("New → Web Service") con estos mismos valores (ver DEPLOY.md).
+services:
+  - type: web
+    name: claridad-total-whatsapp
+    runtime: python
+    plan: starter                      # 'starter' = siempre prendido (24/7). 'free' se duerme.
+    branch: claude/ai-real-estate-platform-rivx96
+    rootDir: claridad-total/whatsapp-agent
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      - key: DATA_DIR
+        value: /var/data              # disco persistente (abajo)
+      - key: WHATSAPP_VERIFY_TOKEN
+        value: claridad-total-verify
+      - key: GRAPH_API_VERSION
+        value: v21.0
+      - key: TEMPLATE_LANG
+        value: es_AR
+      - key: AGENT_MODEL
+        value: claude-sonnet-5
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        value: "1209516492249572"
+      - key: WHATSAPP_BUSINESS_ACCOUNT_ID
+        value: "26903216089352293"
+      # --- Secretos: se cargan en el panel de Render, NO en el repo ---
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CORREDOR_NOTIFY_NUMBER
+        sync: false
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
