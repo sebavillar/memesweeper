@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 import functools
 
 from . import agent, db, inmoclick, remax, scraper
+from .api import router as api_router
 from .config import settings
 from .panel import router as panel_router
 from .whatsapp import send_text
@@ -25,8 +26,9 @@ from .whatsapp import send_text
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("main")
 
-app = FastAPI(title="Claridad Total · Agente de WhatsApp", version="0.3.0")
+app = FastAPI(title="Claridad Total · Agente de WhatsApp", version="0.4.0")
 app.include_router(panel_router)
+app.include_router(api_router)  # API JSON para el panel web (Next.js)
 
 # Fotos de propiedades: guardadas en el disco persistente y servidas públicamente
 # en /media para que WhatsApp/Meta puedan descargarlas.

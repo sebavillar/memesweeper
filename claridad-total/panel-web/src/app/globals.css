@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/* ── Claridad Total · sistema de diseño (modo claro deliberado) ─────────────
+   Marca: teal #0C7C8C (acento UI) · dorado #9C6A15.
+   Serie de datos (validada con el validador de paleta, all-pairs PASS):
+   teal #0993ab · dorado #9C6A15 · violeta #7a5bd0 · rosa #d54f74. */
+
+:root {
+  color-scheme: light;
+  --page: #f7f6f3;          /* plano de página */
+  --surface: #fcfcfb;       /* superficie de tarjetas y gráficos */
+  --ink: #1d1c1a;           /* texto primario */
+  --ink-2: #52514e;         /* texto secundario */
+  --muted: #898781;         /* ejes, etiquetas suaves */
+  --hairline: #e3e1da;      /* bordes finos, grilla */
+  --brand: #0c7c8c;         /* acento de interfaz */
+  --brand-ink: #0a6574;
+  --gold: #9c6a15;
+  --s1: #0993ab;            /* series de datos */
+  --s2: #9c6a15;
+  --s3: #7a5bd0;
+  --s4: #d54f74;
+  --good: #0ca30c;
+  --bad: #d03b3b;
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-hairline: var(--hairline);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-gold: var(--gold);
+  --color-s1: var(--s1);
+  --color-s2: var(--s2);
+  --color-s3: var(--s3);
+  --color-s4: var(--s4);
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Iowan Old Style", Palatino, Georgia, serif;
+}
+
+html {
+  background: var(--page);
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Números que deben alinear en columnas (tablas, ticks) */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}

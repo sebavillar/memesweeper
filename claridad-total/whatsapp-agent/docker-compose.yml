@@ -14,11 +14,23 @@ services:
     expose:
       - "8000"                # interno; Caddy lo publica por HTTPS
 
+  web:
+    build: ../panel-web        # panel nuevo (Next.js): analítica + inventario
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      - BACKEND_URL=http://app:8000
+      - PANEL_PASSWORD=${PANEL_PASSWORD}
+    expose:
+      - "3000"                # interno; Caddy lo publica por HTTPS
+
   caddy:
     image: caddy:2
     restart: unless-stopped
     depends_on:
       - app
+      - web
     ports:
       - "80:80"
       - "443:443"

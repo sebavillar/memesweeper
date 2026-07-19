@@ -1,5 +1,13 @@
 # Caddy obtiene y renueva el certificado HTTPS (Let's Encrypt) automáticamente
-# para el dominio de AGENT_DOMAIN, y hace de reverse proxy hacia la app.
+# para el dominio de AGENT_DOMAIN y enruta:
+#   /webhook, /api, /media, /panel, /simulate, /health → FastAPI (bot + API)
+#   todo lo demás                                      → panel web (Next.js)
 {$AGENT_DOMAIN} {
-	reverse_proxy app:8000
+	@backend path /webhook* /api/* /media/* /panel* /simulate /health
+	handle @backend {
+		reverse_proxy app:8000
+	}
+	handle {
+		reverse_proxy web:3000
+	}
 }
