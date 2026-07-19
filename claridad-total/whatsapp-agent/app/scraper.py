@@ -48,28 +48,46 @@ def _int(s: str | None) -> int | None:
 
 
 def _parse_card(card: Any, now: str) -> dict[str, Any]:
-    a = card.select_one("a[href*='/MLA-'], a.ui-search-link, a.poly-component__title")
+    a = card.select_one("a.poly-component__title, a[href*='mercadolibre.com.ar/MLA-'], a[href*='/MLA-']")
     href = (a.get("href") if a else "") or ""
-    url = href.split("#")[0] or None
+    url = href.split("#")[0].split("?")[0] or None
     m = re.search(r"MLA-?(\d+)", href)
     listing_id = "MLA" + m.group(1) if m else None
-
     titulo = _txt(a) or _txt(card.select_one("h2, .poly-component__title, .ui-search-item__title"))
-    precio = _int(_txt(card.select_one(".andes-money-amount__fraction, .price-tag-fraction")))
+
+    # Precio + moneda desde el aria-label del monto ("40000 dólares"): lo más confiable.
+    precio: int | None = None
+    moneda: str | None = None
+    amount = card.select_one("[aria-roledescription='Monto'], .poly-price__amount, .andes-money-amount")
+    aria = (amount.get("aria-label") if amount else "") or ""
+    ma = re.search(r"([\d.]+)\s*(d[oó]lares|pesos|usd|ars|u\$s)", aria, re.I)
+    if ma:
+        precio = _int(ma.group(1))
+        moneda = "ARS" if "peso" in ma.group(2).lower() or "ars" in ma.group(2).lower() else "USD"
+    else:
+        precio = _int(_txt(card.select_one(".andes-money-amount__fraction, .price-tag-fraction")))
+        low0 = _txt(card).lower()
+        moneda = "USD" if ("u$s" in low0 or "dólar" in low0 or "dolar" in low0) else ("ARS" if "$" in _txt(card) else None)
 
     blob = _txt(card)
     low = blob.lower()
-    moneda = "USD" if ("u$s" in low or "usd" in low) else ("ARS" if "$" in blob else None)
-
     m2 = (lambda x: int(x.group(1)) if x else None)(re.search(r"(\d+)\s*m²", blob))
     amb = (lambda x: int(x.group(1)) if x else None)(re.search(r"(\d+)\s*ambiente", low))
     dorm = (lambda x: int(x.group(1)) if x else None)(re.search(r"(\d+)\s*dormitor", low))
-    loc = _txt(card.select_one(".ui-search-item__location, .poly-component__location, "
+    loc = _txt(card.select_one(".poly-component__location, .ui-search-item__location, "
                                ".ui-search-item__group__element--location"))
 
-    tl = (titulo or "").lower()
-    tipo = "casa" if "casa" in tl else \
-        "departamento" if ("departamento" in tl or "depto" in tl or "monoambiente" in tl) else None
+    # Tipo: subdominio de la URL (casa./departamento./terreno.) o headline/título.
+    headline = _txt(card.select_one(".poly-component__headline")).lower()
+    ctx = f"{href.lower()} {headline} {low}"
+    if "casa" in ctx:
+        tipo = "casa"
+    elif "departamento" in ctx or "depto" in ctx or "monoambiente" in ctx:
+        tipo = "departamento"
+    elif "terreno" in ctx or "lote" in ctx:
+        tipo = "terreno"
+    else:
+        tipo = None
 
     return {
         "source": "mercadolibre", "listing_id": listing_id, "titulo": titulo, "url": url,
