@@ -21,6 +21,7 @@ export type Filtros = {
   departamentos: { nombre: string; n: number }[];
   tipos: { nombre: string; n: number }[];
   fuentes: { nombre: string; n: number }[];
+  privados: number;
   total: number;
   last_fetch: string | null;
 };
@@ -61,6 +62,7 @@ export type ListingRow = {
   ppm: number | null;
   dormitorios: number | null;
   antiguedad: number | null;
+  barrio_privado: number | null;
   depto_norm: string | null;
   fetched_at: string | null;
 };
@@ -119,7 +121,7 @@ export type Valuacion = {
 /** Convierte los searchParams del dashboard en querystring para la API. */
 export function qsMercado(sp: Record<string, string | string[] | undefined>): string {
   const p = new URLSearchParams();
-  for (const k of ["depto", "tipo", "fuente", "usd_min", "usd_max", "m2_min", "m2_max"]) {
+  for (const k of ["depto", "tipo", "fuente", "usd_min", "usd_max", "m2_min", "m2_max", "privado"]) {
     const v = sp[k];
     if (typeof v === "string" && v) p.set(k, v);
   }

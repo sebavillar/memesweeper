@@ -52,6 +52,17 @@ def extraer_antiguedad(html: str) -> float | None:
     return None
 
 
+# Las fichas suelen mostrar abajo "publicaciones similares/recomendadas" de OTROS
+# inmuebles; para no leer señales ajenas, analizamos solo la región principal.
+_MARCAS_FIN = ("recomendac", "similares", "sugerid", "related", "recommended")
+
+
+def region_principal(html: str) -> str:
+    low = html.lower()
+    cortes = [i for m in _MARCAS_FIN if (i := low.find(m)) > 0]
+    return html[: min(cortes)] if cortes else html
+
+
 def run(per_source: int = 60, pausa: float = 4.0) -> dict[str, Any]:
     """Visita fichas pendientes y guarda la antigüedad. Devuelve diagnóstico."""
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -83,8 +94,9 @@ def run(per_source: int = 60, pausa: float = 4.0) -> dict[str, Any]:
                 time.sleep(pausa)
                 continue
 
-            ant = extraer_antiguedad(r.text)
-            db.set_detail(src, f["listing_id"], ant, now)
+            region = region_principal(r.text)
+            ant = extraer_antiguedad(region)
+            db.set_detail(src, f["listing_id"], ant, now, privado=db.es_privado(region))
             if ant is not None:
                 con_dato += 1
             else:

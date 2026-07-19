@@ -56,6 +56,7 @@ def _rows(
     usd_max: float | None = None,
     m2_min: float | None = None,
     m2_max: float | None = None,
+    privado: str | None = None,
     solo_usd: bool = True,
 ) -> list[dict[str, Any]]:
     """Carga los comparables en venta y aplica filtros en memoria (la base es
@@ -87,6 +88,10 @@ def _rows(
             continue
         if m2_max is not None and not (m2 and m2 <= m2_max):
             continue
+        if privado == "si" and r.get("barrio_privado") != 1:
+            continue
+        if privado == "no" and r.get("barrio_privado") == 1:
+            continue
         out.append(r)
     return out
 
@@ -117,9 +122,10 @@ def _filtros_qs(
     usd_max: float | None = Query(None),
     m2_min: float | None = Query(None),
     m2_max: float | None = Query(None),
+    privado: str | None = Query(None),
 ) -> dict[str, Any]:
     return {"depto": depto, "tipo": tipo, "fuente": fuente, "usd_min": usd_min,
-            "usd_max": usd_max, "m2_min": m2_min, "m2_max": m2_max}
+            "usd_max": usd_max, "m2_min": m2_min, "m2_max": m2_max, "privado": privado}
 
 
 @router.get("/market/filters")
@@ -140,6 +146,7 @@ def market_filters() -> dict[str, Any]:
         "departamentos": [{"nombre": k, "n": v} for k, v in sorted(deptos.items(), key=lambda x: -x[1])],
         "tipos": [{"nombre": k, "n": v} for k, v in sorted(tipos.items(), key=lambda x: -x[1])],
         "fuentes": [{"nombre": k, "n": v} for k, v in sorted(fuentes.items(), key=lambda x: -x[1])],
+        "privados": sum(1 for r in rows if r.get("barrio_privado") == 1),
         "total": st["total"], "last_fetch": st["last_fetch"],
     }
 
@@ -213,7 +220,8 @@ def market_listings(page: int = Query(1, ge=1), page_size: int = Query(25, le=10
     ini = (page - 1) * page_size
     visibles = [{k: r.get(k) for k in ("source", "listing_id", "titulo", "url", "tipo",
                                        "precio_usd", "m2_cubierta", "m2_total", "ppm",
-                                       "dormitorios", "antiguedad", "depto_norm", "fetched_at")}
+                                       "dormitorios", "antiguedad", "barrio_privado",
+                                       "depto_norm", "fetched_at")}
                 for r in rows[ini:ini + page_size]]
     return {"total": len(rows), "page": page, "page_size": page_size, "rows": visibles}
 

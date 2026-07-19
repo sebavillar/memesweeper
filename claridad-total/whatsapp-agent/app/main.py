@@ -65,6 +65,13 @@ async def _market_updater() -> None:
                                  nombre, res.get("guardados"), res.get("venta_usd"))
                 except Exception as exc:  # noqa: BLE001
                     log.warning("No se pudo actualizar la oferta (%s): %s", nombre, exc)
+            # Señal de barrio privado desde los títulos de los avisos nuevos.
+            try:
+                bp = await asyncio.get_running_loop().run_in_executor(None, db.marcar_privados)
+                if bp:
+                    log.info("Barrio privado detectado en %d avisos (por título).", bp)
+            except Exception as exc:  # noqa: BLE001
+                log.warning("No se pudo marcar barrios privados: %s", exc)
             # Enriquecimiento gradual: antigüedad desde las fichas de avisos
             # nuevos (60 por fuente/día, con pausas). Ver app/enrich.py.
             try:

@@ -5,6 +5,7 @@ crezca, la interfaz se puede portar a PostgreSQL sin tocar el resto."""
 from __future__ import annotations
 
 import os
+import re
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
@@ -52,6 +53,8 @@ def init() -> None:
             c.execute("ALTER TABLE comparables ADD COLUMN antiguedad REAL")
         if "detail_at" not in cols:
             c.execute("ALTER TABLE comparables ADD COLUMN detail_at TEXT")
+        if "barrio_privado" not in cols:
+            c.execute("ALTER TABLE comparables ADD COLUMN barrio_privado INTEGER")
 
 
 def upsert(rows: list[dict[str, Any]]) -> int:
@@ -92,6 +95,35 @@ def query(tipo: str | None = None, departamento: str | None = None,
         return [dict(r) for r in c.execute(q, args).fetchall()]
 
 
+# Señales de barrio privado / cerrado en Mendoza (títulos y fichas).
+_RE_PRIVADO = re.compile(
+    r"barrio\s+(privado|cerrado)|b[°ºo]\.?\s*privado|club\s+de\s+campo|"
+    r"\bcountry\b|condominio\s+(privado|cerrado)|barrio\s+priv\.", re.I)
+
+
+def es_privado(texto: str) -> bool:
+    return bool(_RE_PRIVADO.search(texto or ""))
+
+
+def marcar_privados() -> int:
+    """Marca barrio_privado (1/0) según título + barrio en los avisos que aún no
+    fueron evaluados. Retroactivo para toda la base y automático para los nuevos.
+    La visita a la ficha (enrich) puede subir un 0 → 1 si la descripción lo dice."""
+    init()
+    with _conn() as c:
+        rows = c.execute("SELECT source, listing_id, titulo, barrio FROM comparables "
+                         "WHERE barrio_privado IS NULL").fetchall()
+        updates = []
+        marcados = 0
+        for r in rows:
+            v = 1 if es_privado(f"{r['titulo'] or ''} {r['barrio'] or ''}") else 0
+            marcados += v
+            updates.append((v, r["source"], r["listing_id"]))
+        c.executemany("UPDATE comparables SET barrio_privado = ? WHERE source = ? AND listing_id = ?",
+                      updates)
+    return marcados
+
+
 def pending_detail(source: str | None = None, limit: int = 60) -> list[dict[str, Any]]:
     """Avisos cuya ficha todavía no se visitó (para enriquecer antigüedad).
     Los más recientes primero: los avisos nuevos del día entran antes."""
@@ -107,11 +139,18 @@ def pending_detail(source: str | None = None, limit: int = 60) -> list[dict[str,
         return [dict(r) for r in c.execute(q, args).fetchall()]
 
 
-def set_detail(source: str, listing_id: str, antiguedad: float | None, when: str) -> None:
-    """Registra el resultado de visitar la ficha (aunque no haya dato, para no reintentar)."""
+def set_detail(source: str, listing_id: str, antiguedad: float | None, when: str,
+               privado: bool | None = None) -> None:
+    """Registra el resultado de visitar la ficha (aunque no haya dato, para no
+    reintentar). Si la ficha menciona barrio privado, sube la marca a 1 (nunca
+    baja un 1 puesto por el título)."""
     with _conn() as c:
-        c.execute("UPDATE comparables SET antiguedad = ?, detail_at = ? WHERE source = ? AND listing_id = ?",
-                  (antiguedad, when, source, listing_id))
+        if privado:
+            c.execute("UPDATE comparables SET antiguedad = ?, detail_at = ?, barrio_privado = 1 "
+                      "WHERE source = ? AND listing_id = ?", (antiguedad, when, source, listing_id))
+        else:
+            c.execute("UPDATE comparables SET antiguedad = ?, detail_at = ? "
+                      "WHERE source = ? AND listing_id = ?", (antiguedad, when, source, listing_id))
 
 
 def stats() -> dict[str, Any]:

@@ -95,19 +95,31 @@ export default async function AvisosPage({
                 key={`${r.source}-${r.listing_id}`}
                 className="border-b border-hairline last:border-0 hover:bg-page/60"
               >
-                <td className="max-w-72 truncate px-4 py-2.5">
-                  {r.url ? (
-                    <a
-                      href={r.url}
-                      target="_blank"
-                      rel="noopener"
-                      className="text-brand-ink hover:underline"
-                    >
-                      {r.titulo || r.listing_id}
-                    </a>
-                  ) : (
-                    r.titulo || r.listing_id
-                  )}
+                <td className="max-w-72 px-4 py-2.5">
+                  <span className="flex items-center gap-1.5">
+                    {r.barrio_privado === 1 && (
+                      <span
+                        title="Barrio privado"
+                        className="shrink-0 rounded-full bg-gold/10 px-1.5 py-0.5 text-[10px] font-semibold text-gold"
+                      >
+                        BP
+                      </span>
+                    )}
+                    <span className="truncate">
+                      {r.url ? (
+                        <a
+                          href={r.url}
+                          target="_blank"
+                          rel="noopener"
+                          className="text-brand-ink hover:underline"
+                        >
+                          {r.titulo || r.listing_id}
+                        </a>
+                      ) : (
+                        r.titulo || r.listing_id
+                      )}
+                    </span>
+                  </span>
                 </td>
                 <td className="px-3 py-2.5">
                   <SourcePill source={r.source} />

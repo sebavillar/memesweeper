@@ -40,6 +40,15 @@ def _market_stats(p: dict[str, Any]) -> dict[str, Any] | None:
     calibra con esa banda: la edad mueve el precio y así se compara mejor."""
     comps = db.query(tipo=(p.get("tipo") or "").lower(), departamento=p.get("departamento"),
                      operacion="venta", solo_con_m2=True, limit=60)
+    # Si el inmueble está en barrio privado, comparar contra otros barrios privados
+    # (el premium de seguridad/amenities distorsionaría la mediana general).
+    banda_privado = False
+    texto_p = f"{p.get('barrio', '')} {p.get('titulo', '')} {' '.join(p.get('caracteristicas') or [])}"
+    if db.es_privado(texto_p):
+        privados = [c for c in comps if c.get("barrio_privado") == 1]
+        if len(privados) >= 5:
+            comps = privados
+            banda_privado = True
     banda_edad = False
     anti = p.get("antiguedad")
     if anti is not None:
@@ -52,7 +61,8 @@ def _market_stats(p: dict[str, Any]) -> dict[str, Any] | None:
             if c.get("m2_cubierta") and c.get("precio_usd")]
     if len(ppms) < 3:
         return None
-    return {"n": len(ppms), "mediana_ppm": statistics.median(ppms), "banda_edad": banda_edad}
+    return {"n": len(ppms), "mediana_ppm": statistics.median(ppms),
+            "banda_edad": banda_edad, "banda_privado": banda_privado}
 
 
 def valuar(p: dict[str, Any]) -> dict[str, Any]:
@@ -66,6 +76,8 @@ def valuar(p: dict[str, Any]) -> dict[str, Any]:
     if market:
         m2 = round(market["mediana_ppm"])
         fuente_m2 = f"mediana de {market['n']} publicaciones · portales (ML/RE/MAX/Inmoclick)"
+        if market.get("banda_privado"):
+            fuente_m2 += " · solo barrios privados"
         if market.get("banda_edad"):
             fuente_m2 += " · misma banda de antigüedad"
 

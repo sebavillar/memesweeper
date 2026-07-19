@@ -71,6 +71,17 @@ export function FilterBar({ filtros }: { filtros: Filtros }) {
         ))}
       </select>
 
+      <select
+        aria-label="Barrio privado"
+        className={sel}
+        value={sp.get("privado") || ""}
+        onChange={(e) => setParam("privado", e.target.value)}
+      >
+        <option value="">Privados y abiertos</option>
+        <option value="si">Solo barrio privado ({filtros.privados})</option>
+        <option value="no">Sin barrio privado</option>
+      </select>
+
       <div className="flex items-center gap-1.5">
         <input
           aria-label="Precio mínimo USD"
