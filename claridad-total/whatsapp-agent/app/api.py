@@ -299,6 +299,74 @@ def market_listings(page: int = Query(1, ge=1), page_size: int = Query(25, le=10
     return {"total": len(rows), "page": page, "page_size": page_size, "rows": visibles}
 
 
+# ─────────────────────────── Consultas (leads del bot) ───────────────────────
+_TEMP_ORDER = {"caliente": 0, "tibio": 1, "frio": 2}
+
+
+def _lead_view(l: dict[str, Any]) -> dict[str, Any]:
+    wa = l.get("wa_id") or ""
+    ult = store.last_message(wa) if wa else None
+    return {
+        "wa_id": wa,
+        "nombre": l.get("nombre"),
+        "telefono": l.get("telefono") or wa,
+        "wa_link": f"https://wa.me/{wa}" if wa else None,
+        "temperatura": l.get("temperatura") or "frio",
+        "score": l.get("score") or 0,
+        "presupuesto_usd": l.get("presupuesto_usd"),
+        "zona": l.get("zona"),
+        "tipo": l.get("tipo"),
+        "ambientes": l.get("ambientes"),
+        "urgencia": l.get("urgencia"),
+        "necesita_credito": l.get("necesita_credito"),
+        "handoff": bool(l.get("handoff")),
+        "handoff_motivo": l.get("handoff_motivo"),
+        "visita_agendada": bool(l.get("visita_agendada")),
+        "mensajes": l.get("mensajes") or 0,
+        "creado": l.get("creado"),
+        "actualizado": l.get("actualizado"),
+        "ultimo_mensaje": ult,
+    }
+
+
+@router.get("/leads")
+def leads_list() -> list[dict[str, Any]]:
+    leads = [_lead_view(l) for l in store.list_leads()]
+    # Orden: por actividad reciente; a igualdad, por score.
+    leads.sort(key=lambda x: (x.get("actualizado") or "", x.get("score") or 0), reverse=True)
+    return leads
+
+
+@router.get("/leads/summary")
+def leads_summary() -> dict[str, Any]:
+    leads = store.list_leads()
+    visitas = store.list_visitas()
+    return {
+        "total": len(leads),
+        "calientes": sum(1 for l in leads if l.get("temperatura") == "caliente"),
+        "tibios": sum(1 for l in leads if l.get("temperatura") == "tibio"),
+        "handoffs": sum(1 for l in leads if l.get("handoff")),
+        "con_visita": sum(1 for l in leads if l.get("visita_agendada")),
+        "visitas": len(visitas),
+    }
+
+
+@router.get("/visitas")
+def visitas_list() -> list[dict[str, Any]]:
+    vs = list(store.list_visitas())
+    vs.sort(key=lambda v: v.get("creada") or "", reverse=True)
+    return vs
+
+
+@router.get("/leads/{wa_id}")
+def lead_detail(wa_id: str) -> dict[str, Any]:
+    lead = next((l for l in store.list_leads() if l.get("wa_id") == wa_id), None)
+    if not lead:
+        raise HTTPException(404, "no existe esa consulta")
+    visitas = [v for v in store.list_visitas() if v.get("wa_id") == wa_id]
+    return {"lead": _lead_view(lead), "conversacion": store.transcript(wa_id), "visitas": visitas}
+
+
 @router.get("/inventory")
 def inventory_list() -> list[dict[str, Any]]:
     props = inventory.load()

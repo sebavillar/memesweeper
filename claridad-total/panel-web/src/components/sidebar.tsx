@@ -6,6 +6,7 @@ import { logout } from "@/app/login/actions";
 
 const NAV = [
   { href: "/", label: "Mercado", icon: "◧" },
+  { href: "/consultas", label: "Consultas", icon: "✦" },
   { href: "/avisos", label: "Avisos", icon: "☰" },
   { href: "/inventario", label: "Inventario", icon: "⌂" },
 ];

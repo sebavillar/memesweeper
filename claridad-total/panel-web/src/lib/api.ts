@@ -138,6 +138,55 @@ export type Valuacion = {
   fuentes: Record<string, string>;
 };
 
+export type LeadMsg = { role: "user" | "assistant"; text: string };
+
+export type Lead = {
+  wa_id: string;
+  nombre: string | null;
+  telefono: string | null;
+  wa_link: string | null;
+  temperatura: "caliente" | "tibio" | "frio";
+  score: number;
+  presupuesto_usd: number | null;
+  zona: string | null;
+  tipo: string | null;
+  ambientes: number | null;
+  urgencia: string | null;
+  necesita_credito: boolean | null;
+  handoff: boolean;
+  handoff_motivo: string | null;
+  visita_agendada: boolean;
+  mensajes: number;
+  creado: string | null;
+  actualizado: string | null;
+  ultimo_mensaje: LeadMsg | null;
+};
+
+export type LeadSummary = {
+  total: number;
+  calientes: number;
+  tibios: number;
+  handoffs: number;
+  con_visita: number;
+  visitas: number;
+};
+
+export type Visita = {
+  wa_id?: string;
+  propiedad?: string;
+  propiedad_id?: string;
+  fecha_hora?: string;
+  nombre?: string | null;
+  telefono?: string | null;
+  creada?: string;
+};
+
+export type LeadDetail = {
+  lead: Lead;
+  conversacion: LeadMsg[];
+  visitas: Visita[];
+};
+
 /** Convierte los searchParams del dashboard en querystring para la API. */
 export function qsMercado(sp: Record<string, string | string[] | undefined>): string {
   const p = new URLSearchParams();

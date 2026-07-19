@@ -22,6 +22,20 @@ export function fecha(iso: string | null | undefined): string {
   return isNaN(+d) ? "—" : d.toLocaleDateString("es-AR", { day: "2-digit", month: "short" });
 }
 
+/** Tiempo relativo es-AR: "hace 5 min", "hace 2 h", "ayer", "12 jul". */
+export function hace(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(+d)) return "—";
+  const s = (Date.now() - d.getTime()) / 1000;
+  if (s < 60) return "recién";
+  if (s < 3600) return `hace ${Math.floor(s / 60)} min`;
+  if (s < 86400) return `hace ${Math.floor(s / 3600)} h`;
+  if (s < 172800) return "ayer";
+  if (s < 604800) return `hace ${Math.floor(s / 86400)} días`;
+  return d.toLocaleDateString("es-AR", { day: "2-digit", month: "short" });
+}
+
 export const FUENTES: Record<string, string> = {
   mercadolibre: "ML",
   remax: "RE/MAX",

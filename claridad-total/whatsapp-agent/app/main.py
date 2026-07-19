@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 import functools
 
-from . import agent, db, enrich, inmoclick, inmoup, mendozaprop, remax, scraper
+from . import agent, db, enrich, inmoclick, inmoup, mendozaprop, remax, scraper, store
 from .api import router as api_router
 from .config import settings
 from .panel import router as panel_router
@@ -119,6 +119,7 @@ async def receive(request: Request) -> Response:
                     wa_id = msg["from"]
                     texto = msg["text"]["body"]
                     log.info("← %s: %s", wa_id, texto)
+                    store.touch_lead(wa_id)  # registra la consulta para el tablero
                     respuesta = agent.responder(wa_id, texto)
                     send_text(wa_id, respuesta)
     except Exception as exc:  # noqa: BLE001

@@ -72,6 +72,22 @@ export function SourcePill({ source }: { source: string }) {
   );
 }
 
+const TEMP: Record<string, { cls: string; label: string }> = {
+  caliente: { cls: "bg-[#d03b3b]/10 text-[#b23f2a]", label: "🔥 Caliente" },
+  tibio: { cls: "bg-[#9C6A15]/10 text-[#7a5410]", label: "🟡 Tibio" },
+  frio: { cls: "bg-page text-muted", label: "⚪ Frío" },
+};
+
+/** Pill de temperatura del lead (caliente / tibio / frío). */
+export function TempPill({ t }: { t?: string }) {
+  const info = TEMP[t || "frio"] || TEMP.frio;
+  return (
+    <span className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium ${info.cls}`}>
+      {info.label}
+    </span>
+  );
+}
+
 export function EstadoPill({ estado }: { estado?: string }) {
   const map: Record<string, string> = {
     disponible: "bg-[#0ca30c]/10 text-[#006300]",
