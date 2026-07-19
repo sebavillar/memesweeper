@@ -3,18 +3,22 @@ export const dynamic = "force-dynamic";
 import {
   api,
   qsMercado,
+  type AgeData,
   type BreakdownRow,
   type Filtros,
   type Histogram,
+  type PrivadoGap,
   type ScatterPoint,
   type Summary,
 } from "@/lib/api";
 import { FilterBar } from "@/components/filter-bar";
 import { Card, Kpi } from "@/components/ui";
 import {
+  AgePpmChart,
   DeptoBars,
   FuenteBars,
   PriceHistogram,
+  PrivadoGapBars,
   ScatterTipos,
   TipoBars,
 } from "@/components/charts";
@@ -30,7 +34,7 @@ export default async function MercadoPage({
   const q = qs ? `?${qs}` : "";
   const amp = qs ? `&${qs}` : "";
 
-  const [filtros, summary, porDepto, porTipo, porFuente, histo, histoPpm, scatter] =
+  const [filtros, summary, porDepto, porTipo, porFuente, histo, histoPpm, scatter, age, gap] =
     await Promise.all([
       api<Filtros>("/api/v1/market/filters"),
       api<Summary>(`/api/v1/market/summary${q}`),
@@ -40,6 +44,8 @@ export default async function MercadoPage({
       api<Histogram>(`/api/v1/market/histogram${q}`),
       api<Histogram>(`/api/v1/market/histogram?field=ppm&bins=18${amp}`),
       api<ScatterPoint[]>(`/api/v1/market/scatter${q}`),
+      api<AgeData>(`/api/v1/market/age${q}`),
+      api<PrivadoGap>(`/api/v1/market/privado_gap${q}`),
     ]);
 
   return (
@@ -102,12 +108,26 @@ export default async function MercadoPage({
           <ScatterTipos data={scatter} />
         </Card>
 
+        <Card
+          title="Precio por m² según antigüedad"
+          subtitle={`La línea dorada marca la mediana por banda de edad · ${age.n} avisos con antigüedad`}
+        >
+          <AgePpmChart data={age} />
+        </Card>
+
+        <Card
+          title="Diferencial barrio privado"
+          subtitle="Mediana de US$/m²: privado vs. abierto, por departamento"
+        >
+          <PrivadoGapBars data={gap} />
+        </Card>
+
         <Card title="Avisos por tipo">
           <TipoBars data={porTipo} />
         </Card>
 
-        <Card title="Avisos por fuente">
-          <FuenteBars data={porFuente} />
+        <Card title="Avisos por fuente" subtitle="Pasá el mouse para ver la última actualización de cada scraper">
+          <FuenteBars data={porFuente} lastBySource={filtros.fuentes_last} />
         </Card>
       </div>
     </>

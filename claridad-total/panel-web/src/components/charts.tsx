@@ -21,8 +21,8 @@ import {
   YAxis,
   ZAxis,
 } from "recharts";
-import type { BreakdownRow, Histogram, ScatterPoint } from "@/lib/api";
-import { compact, n, usd } from "@/lib/format";
+import type { AgeData, BreakdownRow, Histogram, PrivadoGap, ScatterPoint } from "@/lib/api";
+import { compact, fecha, n, usd } from "@/lib/format";
 
 const INK = "#1d1c1a";
 const INK2 = "#52514e";
@@ -291,8 +291,171 @@ export function ScatterTipos({ data }: { data: ScatterPoint[] }) {
   );
 }
 
+/* ── Precio por m² según antigüedad (dispersión + mediana por banda) ─────── */
+export function AgePpmChart({ data }: { data: AgeData }) {
+  if (data.points.length < 5) {
+    return (
+      <div className="flex h-40 items-center justify-center px-6 text-center text-sm text-muted">
+        Muestra chica todavía ({data.n} avisos con antigüedad). El enriquecimiento
+        diario de fichas la va completando solo.
+      </div>
+    );
+  }
+  const linea = data.bandas.map((b) => ({ edad: b.edad, ppm: b.ppm, banda: b.banda, n: b.n }));
+  return (
+    <div className="h-72">
+      <ResponsiveContainer width="100%" height="100%">
+        <ScatterChart margin={{ top: 8, right: 12 }}>
+          <CartesianGrid stroke={HAIRLINE} />
+          <XAxis
+            type="number"
+            dataKey="edad"
+            name="antigüedad"
+            tick={AXIS}
+            axisLine={{ stroke: HAIRLINE }}
+            tickLine={false}
+            label={{ value: "antigüedad (años)", position: "insideBottomRight", dy: 10, fill: MUTED, fontSize: 11 }}
+          />
+          <YAxis
+            type="number"
+            dataKey="ppm"
+            name="USD/m²"
+            tick={AXIS}
+            tickFormatter={(v: number) => n(v)}
+            axisLine={false}
+            tickLine={false}
+            width={48}
+          />
+          <ZAxis range={[36, 36]} />
+          <Tooltip
+            cursor={{ strokeDasharray: "4 4", stroke: MUTED }}
+            content={({ active, payload }) =>
+              active && payload?.length ? (
+                payload[0].payload.banda ? (
+                  <Tip
+                    title={`Banda ${payload[0].payload.banda} años`}
+                    rows={[
+                      { label: "USD/m² mediano", value: n(payload[0].payload.ppm), swatch: S[1] },
+                      { label: "Avisos", value: n(payload[0].payload.n) },
+                    ]}
+                  />
+                ) : (
+                  <Tip
+                    title={String(payload[0].payload.tipo ?? "aviso")}
+                    rows={[
+                      { label: "Antigüedad", value: `${n(payload[0].payload.edad)} años` },
+                      { label: "USD/m²", value: n(payload[0].payload.ppm) },
+                      { label: "Zona", value: payload[0].payload.depto ?? "—" },
+                    ]}
+                  />
+                )
+              ) : null
+            }
+          />
+          <Legend
+            iconType="circle"
+            iconSize={9}
+            formatter={(v: string) => <span style={{ color: INK2, fontSize: 12 }}>{v}</span>}
+          />
+          <Scatter
+            name="Avisos"
+            data={data.points}
+            fill={S[0]}
+            fillOpacity={0.55}
+            stroke={SURFACE}
+            strokeWidth={1}
+          />
+          <Scatter
+            name="Mediana por edad"
+            data={linea}
+            fill={S[1]}
+            line={{ stroke: S[1], strokeWidth: 2 }}
+            stroke={SURFACE}
+            strokeWidth={1.5}
+          />
+        </ScatterChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+/* ── Diferencial barrio privado vs abierto (barras agrupadas) ────────────── */
+export function PrivadoGapBars({ data }: { data: PrivadoGap }) {
+  const g = data.global;
+  if (!g.ppm_privado || !g.ppm_abierto) {
+    return (
+      <div className="flex h-40 items-center justify-center px-6 text-center text-sm text-muted">
+        Todavía no hay muestra suficiente de avisos en barrio privado para comparar.
+      </div>
+    );
+  }
+  const rows = data.por_depto.length
+    ? data.por_depto.slice(0, 8)
+    : [{ ...g, grupo: "Mendoza (global)" }];
+  return (
+    <div>
+      {g.gap_pct != null && (
+        <p className="mb-3 text-sm text-ink-2">
+          El m² en barrio privado vale{" "}
+          <b className="text-ink">
+            {g.gap_pct >= 0 ? "+" : ""}
+            {g.gap_pct}%
+          </b>{" "}
+          que en barrio abierto: <span className="tnum">{usd(g.ppm_privado)}</span> vs{" "}
+          <span className="tnum">{usd(g.ppm_abierto)}</span> el m² (mediana,{" "}
+          {n(g.n_privado)} vs {n(g.n_abierto)} avisos).
+        </p>
+      )}
+      <div style={{ height: Math.max(150, rows.length * 52) }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={rows} layout="vertical" margin={{ left: 8, right: 44 }}>
+            <CartesianGrid horizontal={false} stroke={HAIRLINE} />
+            <XAxis type="number" tick={AXIS} tickFormatter={(v: number) => n(v)} axisLine={{ stroke: HAIRLINE }} tickLine={false} />
+            <YAxis
+              type="category"
+              dataKey="grupo"
+              width={110}
+              tick={{ fill: INK2, fontSize: 12 }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              cursor={{ fill: "rgba(9,147,171,0.06)" }}
+              content={({ active, payload }) =>
+                active && payload?.length ? (
+                  <Tip
+                    title={String(payload[0].payload.grupo)}
+                    rows={[
+                      { label: "Privado", value: `${usd(payload[0].payload.ppm_privado)}/m² · ${n(payload[0].payload.n_privado)} avisos`, swatch: S[1] },
+                      { label: "Abierto", value: `${usd(payload[0].payload.ppm_abierto)}/m² · ${n(payload[0].payload.n_abierto)} avisos`, swatch: S[0] },
+                      { label: "Diferencial", value: `${payload[0].payload.gap_pct >= 0 ? "+" : ""}${payload[0].payload.gap_pct}%` },
+                    ]}
+                  />
+                ) : null
+              }
+            />
+            <Legend
+              iconType="circle"
+              iconSize={9}
+              formatter={(v: string) => <span style={{ color: INK2, fontSize: 12 }}>{v}</span>}
+            />
+            <Bar name="Barrio privado" dataKey="ppm_privado" fill={S[1]} radius={[0, 4, 4, 0]} barSize={12} />
+            <Bar name="Barrio abierto" dataKey="ppm_abierto" fill={S[0]} radius={[0, 4, 4, 0]} barSize={12} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 /* ── Avisos por fuente (barras horizontales, un matiz) ───────────────────── */
-export function FuenteBars({ data }: { data: BreakdownRow[] }) {
+export function FuenteBars({
+  data,
+  lastBySource = {},
+}: {
+  data: BreakdownRow[];
+  lastBySource?: Record<string, string>;
+}) {
   const NOMBRES: Record<string, string> = {
     mercadolibre: "MercadoLibre",
     remax: "RE/MAX",
@@ -323,6 +486,10 @@ export function FuenteBars({ data }: { data: BreakdownRow[] }) {
                   rows={[
                     { label: "Avisos", value: n(payload[0].payload.n) },
                     { label: "Mediana", value: usd(payload[0].payload.mediana_usd) },
+                    {
+                      label: "Últ. dato",
+                      value: fecha(lastBySource[payload[0].payload.grupo] ?? null),
+                    },
                   ]}
                 />
               ) : null

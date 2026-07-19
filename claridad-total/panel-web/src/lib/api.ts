@@ -22,8 +22,28 @@ export type Filtros = {
   tipos: { nombre: string; n: number }[];
   fuentes: { nombre: string; n: number }[];
   privados: number;
+  fuentes_last: Record<string, string>;
   total: number;
   last_fetch: string | null;
+};
+
+export type AgeData = {
+  points: { edad: number; ppm: number; tipo: string | null; depto: string | null }[];
+  bandas: { banda: string; edad: number; n: number; ppm: number }[];
+  n: number;
+};
+
+export type PrivadoGapSide = {
+  ppm_privado: number | null;
+  ppm_abierto: number | null;
+  n_privado: number;
+  n_abierto: number;
+  gap_pct: number | null;
+};
+
+export type PrivadoGap = {
+  global: PrivadoGapSide;
+  por_depto: (PrivadoGapSide & { grupo: string })[];
 };
 
 export type Summary = {

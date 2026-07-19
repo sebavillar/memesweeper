@@ -135,18 +135,23 @@ def market_filters() -> dict[str, Any]:
     deptos: dict[str, int] = {}
     tipos: dict[str, int] = {}
     fuentes: dict[str, int] = {}
+    fuentes_last: dict[str, str] = {}
     for r in rows:
         if r["depto_norm"]:
             deptos[r["depto_norm"]] = deptos.get(r["depto_norm"], 0) + 1
         if r.get("tipo"):
             tipos[r["tipo"]] = tipos.get(r["tipo"], 0) + 1
         fuentes[r["source"]] = fuentes.get(r["source"], 0) + 1
+        ft = r.get("fetched_at") or ""
+        if ft > fuentes_last.get(r["source"], ""):
+            fuentes_last[r["source"]] = ft
     st = db.stats()
     return {
         "departamentos": [{"nombre": k, "n": v} for k, v in sorted(deptos.items(), key=lambda x: -x[1])],
         "tipos": [{"nombre": k, "n": v} for k, v in sorted(tipos.items(), key=lambda x: -x[1])],
         "fuentes": [{"nombre": k, "n": v} for k, v in sorted(fuentes.items(), key=lambda x: -x[1])],
         "privados": sum(1 for r in rows if r.get("barrio_privado") == 1),
+        "fuentes_last": fuentes_last,
         "total": st["total"], "last_fetch": st["last_fetch"],
     }
 
@@ -200,6 +205,65 @@ def market_histogram(bins: int = Query(12, ge=4, le=30),
         i = min(int((p - lo) / ancho), bins - 1)
         buckets[i]["n"] += 1
     return {"buckets": buckets, "recortados": len(precios) - len(base)}
+
+
+_BANDAS_EDAD = [(0, 0, "A estrenar"), (1, 5, "1–5"), (6, 10, "6–10"), (11, 20, "11–20"),
+                (21, 30, "21–30"), (31, 50, "31–50"), (51, 100, "50+")]
+
+
+@router.get("/market/age")
+def market_age(f: dict[str, Any] = Depends(_filtros_qs)) -> dict[str, Any]:
+    """Relación precio por m² vs antigüedad: puntos individuales + mediana por
+    banda de edad. Solo avisos ya enriquecidos con antigüedad (crece a diario)."""
+    pts = []
+    for r in _rows(**f):
+        edad = r.get("antiguedad")
+        if edad is None or not r.get("ppm") or not (100 <= r["ppm"] <= 20000) or edad > 100:
+            continue
+        pts.append({"edad": edad, "ppm": r["ppm"], "tipo": r.get("tipo"), "depto": r["depto_norm"]})
+    bandas = []
+    for lo, hi, label in _BANDAS_EDAD:
+        vals = [p["ppm"] for p in pts if lo <= p["edad"] <= hi]
+        if len(vals) >= 3:
+            bandas.append({"banda": label, "edad": round((lo + hi) / 2),
+                           "n": len(vals), "ppm": round(statistics.median(vals))})
+    return {"points": pts[:800], "bandas": bandas, "n": len(pts)}
+
+
+@router.get("/market/privado_gap")
+def market_privado_gap(f: dict[str, Any] = Depends(_filtros_qs)) -> dict[str, Any]:
+    """Diferencial de precio por m²: barrio privado vs abierto (mediana), global
+    y por departamento (solo donde ambos lados tienen muestra >=5)."""
+    rows = [r for r in _rows(**f) if r.get("ppm") and 100 <= r["ppm"] <= 20000]
+
+    def _med(vals: list[float]) -> int | None:
+        return round(statistics.median(vals)) if vals else None
+
+    def _split(rs: list[dict[str, Any]]) -> tuple[list[float], list[float]]:
+        return ([r["ppm"] for r in rs if r.get("barrio_privado") == 1],
+                [r["ppm"] for r in rs if r.get("barrio_privado") != 1])
+
+    def _gap(p: int | None, a: int | None) -> int | None:
+        return round((p - a) / a * 100) if p and a else None
+
+    priv, ab = _split(rows)
+    global_ = {"ppm_privado": _med(priv), "ppm_abierto": _med(ab),
+               "n_privado": len(priv), "n_abierto": len(ab),
+               "gap_pct": _gap(_med(priv), _med(ab))}
+
+    grupos: dict[str, list[dict[str, Any]]] = {}
+    for r in rows:
+        if r["depto_norm"]:
+            grupos.setdefault(r["depto_norm"], []).append(r)
+    por_depto = []
+    for g, rs in grupos.items():
+        p, a = _split(rs)
+        if len(p) >= 5 and len(a) >= 5:
+            por_depto.append({"grupo": g, "ppm_privado": _med(p), "ppm_abierto": _med(a),
+                              "n_privado": len(p), "n_abierto": len(a),
+                              "gap_pct": _gap(_med(p), _med(a))})
+    por_depto.sort(key=lambda x: -(x["n_privado"] + x["n_abierto"]))
+    return {"global": global_, "por_depto": por_depto}
 
 
 @router.get("/market/scatter")
