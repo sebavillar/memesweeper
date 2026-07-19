@@ -46,7 +46,7 @@ async def _market_updater() -> None:
     # ~1.000 avisos/día en MELI: 21 páginas × 48 con pausa de 4 s. RE/MAX: 4 páginas.
     fuentes = [
         ("MercadoLibre", functools.partial(scraper.scrape, 21)),
-        ("RE/MAX", functools.partial(remax.scrape, 4)),
+        ("RE/MAX", functools.partial(remax.scrape, 6)),
     ]
 
     async def loop() -> None:

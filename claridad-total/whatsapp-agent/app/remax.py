@@ -94,58 +94,74 @@ def _dig(d: dict[str, Any], *path: str) -> Any:
     return cur
 
 
+def _tipo_from(valor: str) -> str | None:
+    """Normaliza el `type.value` de RE/MAX a nuestras categorías.
+    Valores vistos: casa, departamento, terrenos_y_lotes, campo, hotel,
+    edificio, oficina, fondo_de_comercio, local, ph, ..."""
+    v = _norm(valor)
+    if not v:
+        return None
+    if "casa" in v or "chalet" in v or "duplex" in v:
+        return "casa"
+    if "departamento" in v or "depto" in v or v == "ph" or "monoambiente" in v or "loft" in v:
+        return "departamento"
+    if "terreno" in v or "lote" in v:  # 'terrenos_y_lotes'
+        return "terreno"
+    if "campo" in v or "finca" in v or "chacra" in v or "quinta" in v:
+        return "campo"
+    return v  # hotel, edificio, oficina, local, etc. (se guardan pero no matchean inventario)
+
+
+def _zona_from(address_info: str) -> tuple[str, str | None, str | None]:
+    """`addressInfo` = 'Barrio, Departamento, Provincia' → (provincia, depto, barrio)."""
+    parts = [p.strip() for p in (address_info or "").split(",") if p.strip()]
+    prov = parts[-1] if parts else "Mendoza"
+    depto = parts[-2] if len(parts) >= 2 else None
+    barrio = parts[0] if len(parts) >= 3 else None
+    return prov, depto, barrio
+
+
 def _parse_item(it: dict[str, Any], now: str) -> dict[str, Any]:
-    lid = _first(it, "id", "_id", "listingId", "internalId", "mlsid")
-    slug = _first(it, "slug", "seo", "friendlyUrl")
-    url = None
+    lid = _first(it, "id", "_id", "listingId", "internalId")
+    slug = it.get("slug")
     if slug:
-        url = slug if str(slug).startswith("http") else f"https://www.remax.com.ar/listings/{slug}"
-    elif lid:
-        url = f"https://www.remax.com.ar/listings/{lid}"
-
-    titulo = _first(it, "title", "titulo", "displayAddress", "name") or "Publicación RE/MAX"
-
-    precio = _num(_first(it, "price", "precio", "amount")) or _num(_dig(it, "listPrice", "amount"))
-    moneda_raw = (_first(it, "currency", "moneda") or _dig(it, "currency", "value")
-                  or _dig(it, "listPrice", "currency") or "")
-    moneda_raw = str(moneda_raw).upper()
-    moneda = "USD" if ("USD" in moneda_raw or "U$S" in moneda_raw or "DOLAR" in moneda_raw) else \
-             ("ARS" if ("ARS" in moneda_raw or "PESO" in moneda_raw or "$" == moneda_raw) else None)
-
-    tipo_raw = _norm(str(_first(it, "type", "propertyType", "tipo",
-                                _dig(it, "propertyType", "name")) or ""))
-    if "casa" in tipo_raw or "chalet" in tipo_raw:
-        tipo = "casa"
-    elif "departa" in tipo_raw or "depto" in tipo_raw or "ph" == tipo_raw:
-        tipo = "departamento"
-    elif "terreno" in tipo_raw or "lote" in tipo_raw:
-        tipo = "terreno"
+        url = str(slug) if str(slug).startswith("http") else f"https://www.remax.com.ar/listings/{slug}"
     else:
-        tipo = None
+        url = f"https://www.remax.com.ar/listings/{lid}" if lid else None
 
-    m2_cub = _num(_first(it, "dimensionCovered", "coveredSurface", "m2Cubierta", "builtSurface"))
-    m2_tot = _num(_first(it, "dimensionTotalBuilt", "dimensionLand", "totalSurface", "m2Total", "landSurface"))
-    amb = _int(_first(it, "totalRooms", "rooms", "ambientes"))
-    dorm = _int(_first(it, "bedrooms", "dormitorios", "suites"))
+    titulo = _first(it, "title", "displayAddress") or "Publicación RE/MAX"
 
-    prov = (_first(it, "province", "provincia") or _dig(it, "geo", "province")
-            or _dig(it, "location", "province") or "Mendoza")
-    depto = (_first(it, "county", "city", "departamento", "localidad")
-             or _dig(it, "geo", "city") or _dig(it, "location", "city"))
-    barrio = _first(it, "neighborhood", "barrio", "subLocality") or _dig(it, "geo", "neighborhood")
+    precio = _num(it.get("price"))
+    moneda_v = _norm(str(_dig(it, "currency", "value") or ""))
+    moneda = "USD" if ("usd" in moneda_v or "dolar" in moneda_v) else \
+             ("ARS" if ("ars" in moneda_v or "peso" in moneda_v) else None)
 
-    lat = _num(_first(it, "latitude", "lat") or _dig(it, "geo", "lat") or _dig(it, "location", "lat"))
-    lon = _num(_first(it, "longitude", "lng", "lon") or _dig(it, "geo", "lng") or _dig(it, "location", "lng"))
+    tipo = _tipo_from(str(_dig(it, "type", "value") or ""))
+
+    op = _norm(str(_dig(it, "operation", "value") or ""))
+    operacion = "alquiler" if op in ("rent", "alquiler") else "venta"
+
+    # dimensionCovered = m² cubiertos (construidos); dimensionLand = m² de terreno.
+    m2_cub = _num(it.get("dimensionCovered"))
+    m2_tot = _num(it.get("dimensionLand")) or _num(it.get("dimensionTotalBuilt"))
+    amb = _int(it.get("totalRooms"))
+    dorm = _int(it.get("bedrooms"))
+
+    prov, depto, barrio = _zona_from(str(it.get("addressInfo") or ""))
+
+    lat = lon = None
+    coords = _dig(it, "location", "coordinates")  # GeoJSON: [lon, lat]
+    if isinstance(coords, list) and len(coords) == 2:
+        lon, lat = _num(coords[0]), _num(coords[1])
 
     return {
         "source": "remax", "listing_id": str(lid) if lid else None,
-        "titulo": str(titulo)[:200], "url": url, "operacion": "venta", "tipo": tipo,
+        "titulo": str(titulo)[:200], "url": url, "operacion": operacion, "tipo": tipo,
         "precio": precio, "moneda": moneda,
         "precio_usd": precio if moneda == "USD" else None,
-        "m2_cubierta": m2_cub, "m2_total": m2_tot, "ambientes": amb, "dormitorios": dorm,
-        "provincia": str(prov) if prov else "Mendoza",
-        "departamento": str(depto) if depto else None,
-        "barrio": str(barrio) if barrio else None,
+        "m2_cubierta": m2_cub or None, "m2_total": m2_tot or None,
+        "ambientes": amb or None, "dormitorios": dorm,
+        "provincia": prov or "Mendoza", "departamento": depto, "barrio": barrio,
         "lat": lat, "lon": lon, "fetched_at": now,
     }
 
