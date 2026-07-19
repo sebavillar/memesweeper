@@ -6,6 +6,7 @@ Prueba local:  POST /simulate  {"from": "549...", "text": "hola"}  -> respuesta 
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from pathlib import Path
@@ -14,7 +15,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, db
+from . import agent, db, meli
 from .config import settings
 from .panel import router as panel_router
 from .whatsapp import send_text
@@ -32,6 +33,24 @@ MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
 
 db.init()  # base de datos de mercado (comparables de oferta)
+
+
+@app.on_event("startup")
+async def _market_updater() -> None:
+    """Actualiza la oferta de MercadoLibre automáticamente: una vez al arrancar y
+    cada 24 h. Sin comandos manuales. Si falla (p. ej. hace falta credencial), lo
+    registra en el log y reintenta al día siguiente."""
+    async def loop() -> None:
+        await asyncio.sleep(25)  # dejar que termine de arrancar
+        while True:
+            try:
+                res = await asyncio.get_running_loop().run_in_executor(None, meli.fetch, 300)
+                log.info("Oferta MercadoLibre actualizada: %s", res)
+            except Exception as exc:  # noqa: BLE001
+                log.warning("No se pudo actualizar la oferta (MercadoLibre): %s", exc)
+            await asyncio.sleep(24 * 3600)
+
+    asyncio.create_task(loop())
 
 
 @app.get("/health")

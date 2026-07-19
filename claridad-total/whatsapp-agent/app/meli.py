@@ -37,10 +37,24 @@ def _headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}", "accept": "application/json"}
 
 
-def mendoza_state_id(token: str) -> str:
-    r = httpx.get(f"{API}/classified_locations/countries/AR", headers=_headers(token), timeout=20)
+_TOKEN: dict[str, str] = {}
+
+
+def _authed_get(path: str, params: dict[str, Any] | None = None) -> httpx.Response:
+    """GET a la API. Intenta ANÓNIMO primero (si MELI lo permite, no hace falta
+    registrar app). Si responde 401/403, usa un token de app y reintenta."""
+    url = f"{API}{path}"
+    r = httpx.get(url, params=params, headers={"accept": "application/json"}, timeout=30)
+    if r.status_code in (401, 403):
+        tok = _TOKEN.get("v") or get_token()
+        _TOKEN["v"] = tok
+        r = httpx.get(url, params=params, headers=_headers(tok), timeout=30)
     r.raise_for_status()
-    for s in r.json().get("states", []):
+    return r
+
+
+def mendoza_state_id() -> str:
+    for s in _authed_get("/classified_locations/countries/AR").json().get("states", []):
         if "mendoza" in (s.get("name") or "").lower():
             return s["id"]
     raise RuntimeError("No se encontró el estado 'Mendoza' en las ubicaciones de MELI.")
@@ -110,17 +124,14 @@ def normalize(item: dict[str, Any], now: str) -> dict[str, Any]:
 
 def fetch(max_items: int = 200) -> dict[str, Any]:
     """Trae hasta max_items inmuebles de Mendoza y los guarda en la base."""
-    token = get_token()
-    state = mendoza_state_id(token)
+    state = mendoza_state_id()
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     rows: list[dict[str, Any]] = []
     offset = 0
     while offset < max_items:
-        r = httpx.get(f"{API}/sites/MLA/search",
-                      params={"category": CATEGORIA_INMUEBLES, "state": state, "limit": 50, "offset": offset},
-                      headers=_headers(token), timeout=30)
-        r.raise_for_status()
-        results = r.json().get("results") or []
+        data = _authed_get("/sites/MLA/search", {
+            "category": CATEGORIA_INMUEBLES, "state": state, "limit": 50, "offset": offset}).json()
+        results = data.get("results") or []
         if not results:
             break
         rows.extend(normalize(it, now) for it in results)
