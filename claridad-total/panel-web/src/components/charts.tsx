@@ -461,6 +461,7 @@ export function FuenteBars({
     remax: "RE/MAX",
     inmoclick: "Inmoclick",
     mendozaprop: "MendozaProp",
+    inmoup: "InmoUp",
   };
   const rows = data.map((d) => ({ ...d, nombre: NOMBRES[d.grupo] || d.grupo }));
   if (!rows.length) return <Empty />;

@@ -75,7 +75,7 @@ def valuar(p: dict[str, Any]) -> dict[str, Any]:
     fuente_m2 = "referencia de zona"
     if market:
         m2 = round(market["mediana_ppm"])
-        fuente_m2 = f"mediana de {market['n']} publicaciones · portales (ML/RE/MAX/Inmoclick/MZaProp)"
+        fuente_m2 = f"mediana de {market['n']} publicaciones · portales (ML/RE/MAX/Inmoclick/MZaProp/InmoUp)"
         if market.get("banda_privado"):
             fuente_m2 += " · solo barrios privados"
         if market.get("banda_edad"):
@@ -120,7 +120,7 @@ def valuar(p: dict[str, Any]) -> dict[str, Any]:
         "zona_m2": m2, "factores": [{**s, "val": round(s["val"])} for s in pasos],
         "comparables": comps,
         "fuentes": {"valuacion": "heurística calibrada con oferta real" if market else "heurística (estimación)",
-                    "comparables": "MercadoLibre + RE/MAX + Inmoclick + MendozaProp + inventario propio",
+                    "comparables": "MercadoLibre + RE/MAX + Inmoclick + MendozaProp + InmoUp + inventario propio",
                     "catastro": "no integrado (a pedido)"},
     }
 

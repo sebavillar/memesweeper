@@ -139,6 +139,22 @@ def pending_detail(source: str | None = None, limit: int = 60) -> list[dict[str,
         return [dict(r) for r in c.execute(q, args).fetchall()]
 
 
+def set_details_bulk(filas: list[tuple[str, str, float | None, str]]) -> int:
+    """Guarda antigüedad + detail_at para muchos avisos de una (una sola conexión).
+    `filas` = [(source, listing_id, antiguedad, when), ...]. Usado por fuentes que
+    ya traen la antigüedad en el listado (p. ej. InmoUp), para no visitar fichas."""
+    filas = [f for f in filas if f[1]]
+    if not filas:
+        return 0
+    with _conn() as c:
+        c.executemany(
+            "UPDATE comparables SET antiguedad = ?, detail_at = ? "
+            "WHERE source = ? AND listing_id = ?",
+            [(ant, when, src, lid) for (src, lid, ant, when) in filas],
+        )
+    return len(filas)
+
+
 def set_detail(source: str, listing_id: str, antiguedad: float | None, when: str,
                privado: bool | None = None) -> None:
     """Registra el resultado de visitar la ficha (aunque no haya dato, para no

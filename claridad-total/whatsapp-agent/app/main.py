@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 import functools
 
-from . import agent, db, enrich, inmoclick, mendozaprop, remax, scraper
+from . import agent, db, enrich, inmoclick, inmoup, mendozaprop, remax, scraper
 from .api import router as api_router
 from .config import settings
 from .panel import router as panel_router
@@ -51,6 +51,7 @@ async def _market_updater() -> None:
         ("RE/MAX", functools.partial(remax.scrape, 21)),  # ~500 avisos/día (21×24)
         ("Inmoclick", functools.partial(inmoclick.scrape, 5)),  # Mendoza, 3 tipos × 5 pág.
         ("MendozaProp", functools.partial(mendozaprop.scrape, 25)),  # API JSON, venta
+        ("InmoUp", functools.partial(inmoup.scrape, 8)),  # API JSON, 4 grupos, trae antigüedad
     ]
 
     async def loop() -> None:
