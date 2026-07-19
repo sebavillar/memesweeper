@@ -35,7 +35,7 @@ def _zona_m2(p: dict[str, Any]) -> tuple[int, str]:
 
 
 def _market_stats(p: dict[str, Any]) -> dict[str, Any] | None:
-    """USD/m² real de la oferta de MercadoLibre para el tipo y zona del inmueble."""
+    """USD/m² real de la oferta (MercadoLibre + RE/MAX) para el tipo y zona del inmueble."""
     comps = db.query(tipo=(p.get("tipo") or "").lower(), departamento=p.get("departamento"),
                      operacion="venta", solo_con_m2=True, limit=60)
     ppms = [c["precio_usd"] / c["m2_cubierta"] for c in comps
@@ -55,7 +55,7 @@ def valuar(p: dict[str, Any]) -> dict[str, Any]:
     fuente_m2 = "referencia de zona"
     if market:
         m2 = round(market["mediana_ppm"])
-        fuente_m2 = f"mediana de {market['n']} publicaciones · MercadoLibre"
+        fuente_m2 = f"mediana de {market['n']} publicaciones · portales (ML/RE/MAX)"
 
     pasos: list[dict[str, Any]] = []
     base = cub * m2
@@ -96,7 +96,7 @@ def valuar(p: dict[str, Any]) -> dict[str, Any]:
         "zona_m2": m2, "factores": [{**s, "val": round(s["val"])} for s in pasos],
         "comparables": comps,
         "fuentes": {"valuacion": "heurística calibrada con oferta real" if market else "heurística (estimación)",
-                    "comparables": "MercadoLibre + inventario propio",
+                    "comparables": "MercadoLibre + RE/MAX + inventario propio",
                     "catastro": "no integrado (a pedido)"},
     }
 
@@ -112,7 +112,7 @@ def comparables(p: dict[str, Any], limite: int = 6) -> list[dict[str, Any]]:
         precio = c.get("precio_usd") or 0
         out.append({"id": c.get("listing_id"), "titulo": c.get("titulo") or "Publicación",
                     "precio_usd": precio, "ppm": round(precio / cub) if cub and precio else 0,
-                    "estado": "oferta", "source": "mercadolibre", "url": c.get("url")})
+                    "estado": "oferta", "source": c.get("source") or "mercadolibre", "url": c.get("url")})
 
     _, zona = _zona_m2(p)
     for q in inventory.load():

@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     meli_client_secret: str = ""
     meli_access_token: str = ""  # opcional: token manual en vez de client_credentials
 
+    # RE/MAX (scraping de su API JSON). URL base obtenida desde DevTools del navegador.
+    remax_api_url: str = ""
+
     @property
     def graph_base(self) -> str:
         return f"https://graph.facebook.com/{self.graph_api_version}"

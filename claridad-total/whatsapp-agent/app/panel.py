@@ -379,21 +379,25 @@ def inventario_detalle(prop_id: str) -> HTMLResponse:
         f'<b>{_money(fac["val"]) if fac["label"].startswith("Base") else ("+" if fac["val"]>=0 else "−")+_money(abs(fac["val"]))}</b></div>'
         for fac in val["factores"]
     )
+    # Etiqueta por portal (mismo color dorado para oferta externa; gris para propio).
+    _PILL = {"mercadolibre": "ML", "remax": "RE/MAX"}
     comp_rows = ""
     for c in val["comparables"]:
-        if c.get("source") == "mercadolibre" and c.get("url"):
+        src = c.get("source")
+        if src != "propio" and c.get("url"):
+            etiqueta = _PILL.get(src, src or "portal")
             titulo = (f'<a href="{html.escape(c["url"])}" target="_blank" rel="noopener" style="color:var(--acc)">{_esc(c["titulo"])}</a>'
-                      ' <span class="pill" style="background:#9C6A151f;color:#9C6A15">ML</span>')
+                      f' <span class="pill" style="background:#9C6A151f;color:#9C6A15">{_esc(etiqueta)}</span>')
         else:
             titulo = (f'<a href="/panel/inventario/{c["id"]}" style="color:var(--acc)">{_esc(c["titulo"])}</a>'
                       ' <span class="sub">· propio</span>')
         comp_rows += (f'<tr><td>{titulo}</td><td>{_money(c["precio_usd"])}</td>'
                       f'<td>{_money(c["ppm"])}/m²</td><td>{_esc(c["estado"])}</td></tr>')
-    comps = comp_rows or '<tr><td colspan="4" class="empty">Sin comparables todavía. Actualizá la oferta de MercadoLibre.</td></tr>'
+    comps = comp_rows or '<tr><td colspan="4" class="empty">Sin comparables todavía. Actualizá la oferta de los portales.</td></tr>'
     mkt = db.stats()
     mkt_note = (f"Base de oferta: {mkt['venta_usd']} publicaciones en venta (US$) · última actualización {mkt['last_fetch']}"
                 if mkt.get("last_fetch") else
-                "Todavía no cargaste oferta de MercadoLibre. Corré la actualización para calibrar con datos reales.")
+                "Todavía no cargaste oferta de portales. Corré la actualización para calibrar con datos reales.")
 
     body = f"""
     <p class="lead"><a href="/panel/inventario">← Volver</a> &nbsp;·&nbsp; <a href="/panel/inventario/{prop_id}/editar">✏️ Editar</a></p>
@@ -422,7 +426,7 @@ def inventario_detalle(prop_id: str) -> HTMLResponse:
       <div style="margin-top:16px"><div class="sub" style="text-transform:uppercase;font-size:.68rem;margin-bottom:6px">Comparables (tu inventario)</div>
         <table><thead><tr><th>Propiedad</th><th>Precio</th><th>US$/m²</th><th>Estado</th></tr></thead><tbody>{comps}</tbody></table></div>
     </div>
-    <p class="foot">{mkt_note}. Fuente de oferta: <b>MercadoLibre</b> (API oficial).</p>"""
+    <p class="foot">{mkt_note}. Fuentes de oferta: <b>MercadoLibre</b> y <b>RE/MAX</b>.</p>"""
     return _page(f"Inmueble · {p.get('titulo')}", "inventario", body)
 
 

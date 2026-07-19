@@ -15,7 +15,9 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, db, scraper
+import functools
+
+from . import agent, db, remax, scraper
 from .config import settings
 from .panel import router as panel_router
 from .whatsapp import send_text
@@ -37,18 +39,29 @@ db.init()  # base de datos de mercado (comparables de oferta)
 
 @app.on_event("startup")
 async def _market_updater() -> None:
-    """Actualiza la oferta de MercadoLibre automáticamente: una vez al arrancar y
-    cada 24 h. Sin comandos manuales. Si falla (p. ej. hace falta credencial), lo
-    registra en el log y reintenta al día siguiente."""
+    """Actualiza la oferta (MercadoLibre + RE/MAX) automáticamente: una vez al
+    arrancar y cada 24 h. Sin comandos manuales. Volumen contenido para minimizar
+    riesgo de baneo (MELI ~1.000/día con pausas). Si una fuente falla (p. ej. falta
+    credencial/URL), lo registra en el log y reintenta al día siguiente."""
+    # ~1.000 avisos/día en MELI: 21 páginas × 48 con pausa de 4 s. RE/MAX: 4 páginas.
+    fuentes = [
+        ("MercadoLibre", functools.partial(scraper.scrape, 21)),
+        ("RE/MAX", functools.partial(remax.scrape, 4)),
+    ]
+
     async def loop() -> None:
         await asyncio.sleep(25)  # dejar que termine de arrancar
         while True:
-            try:
-                res = await asyncio.get_running_loop().run_in_executor(None, scraper.scrape, 6)
-                log.info("Oferta actualizada (scraper): guardados=%s venta_usd=%s",
-                         res.get("guardados"), res.get("venta_usd"))
-            except Exception as exc:  # noqa: BLE001
-                log.warning("No se pudo actualizar la oferta: %s", exc)
+            for nombre, fn in fuentes:
+                try:
+                    res = await asyncio.get_running_loop().run_in_executor(None, fn)
+                    if res.get("error"):
+                        log.info("Oferta %s: %s", nombre, res["error"])
+                    else:
+                        log.info("Oferta actualizada (%s): guardados=%s venta_usd=%s",
+                                 nombre, res.get("guardados"), res.get("venta_usd"))
+                except Exception as exc:  # noqa: BLE001
+                    log.warning("No se pudo actualizar la oferta (%s): %s", nombre, exc)
             await asyncio.sleep(24 * 3600)
 
     asyncio.create_task(loop())

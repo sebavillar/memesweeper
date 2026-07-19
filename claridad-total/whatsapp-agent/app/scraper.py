@@ -99,7 +99,7 @@ def _parse_card(card: Any, now: str) -> dict[str, Any]:
     }
 
 
-def scrape(max_pages: int = 6, pausa: float = 3.0) -> dict[str, Any]:
+def scrape(max_pages: int = 6, pausa: float = 4.0) -> dict[str, Any]:
     """Recorre páginas de resultados y guarda comparables. Devuelve un diagnóstico
     (útil para calibrar los selectores en la primera corrida)."""
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
