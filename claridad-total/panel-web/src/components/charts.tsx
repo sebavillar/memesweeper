@@ -112,12 +112,21 @@ export function DeptoBars({ data }: { data: BreakdownRow[] }) {
   );
 }
 
-/* ── Distribución de precios (histograma, un matiz) ──────────────────────── */
-export function PriceHistogram({ data }: { data: Histogram }) {
+/* ── Histograma de distribución (un matiz). unidad:
+      "usd" → precios totales (eje compacto 85k/1,2M)
+      "ppm" → USD/m² (X = precio por m², Y = cantidad de avisos) ───────────── */
+export function PriceHistogram({
+  data,
+  unidad = "usd",
+}: {
+  data: Histogram;
+  unidad?: "usd" | "ppm";
+}) {
   if (!data.buckets.length) return <Empty />;
+  const fmt = unidad === "ppm" ? (v: number) => n(v) : compact;
   const rows = data.buckets.map((b) => ({
     ...b,
-    rango: `${compact(b.desde)}–${compact(b.hasta)}`,
+    rango: `${fmt(b.desde)}–${fmt(b.hasta)}`,
   }));
   return (
     <div className="h-56">
@@ -127,7 +136,7 @@ export function PriceHistogram({ data }: { data: Histogram }) {
           <XAxis
             dataKey="desde"
             tick={AXIS}
-            tickFormatter={compact}
+            tickFormatter={fmt}
             axisLine={{ stroke: HAIRLINE }}
             tickLine={false}
             interval="preserveStartEnd"
@@ -138,7 +147,11 @@ export function PriceHistogram({ data }: { data: Histogram }) {
             content={({ active, payload }) =>
               active && payload?.length ? (
                 <Tip
-                  title={`US$ ${payload[0].payload.rango}`}
+                  title={
+                    unidad === "ppm"
+                      ? `${payload[0].payload.rango} US$/m²`
+                      : `US$ ${payload[0].payload.rango}`
+                  }
                   rows={[{ label: "Avisos", value: n(payload[0].payload.n) }]}
                 />
               ) : null

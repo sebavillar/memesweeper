@@ -30,7 +30,7 @@ export default async function MercadoPage({
   const q = qs ? `?${qs}` : "";
   const amp = qs ? `&${qs}` : "";
 
-  const [filtros, summary, porDepto, porTipo, porFuente, histo, scatter] =
+  const [filtros, summary, porDepto, porTipo, porFuente, histo, histoPpm, scatter] =
     await Promise.all([
       api<Filtros>("/api/v1/market/filters"),
       api<Summary>(`/api/v1/market/summary${q}`),
@@ -38,6 +38,7 @@ export default async function MercadoPage({
       api<BreakdownRow[]>(`/api/v1/market/breakdown?by=tipo${amp}`),
       api<BreakdownRow[]>(`/api/v1/market/breakdown?by=fuente${amp}`),
       api<Histogram>(`/api/v1/market/histogram${q}`),
+      api<Histogram>(`/api/v1/market/histogram?field=ppm&bins=18${amp}`),
       api<ScatterPoint[]>(`/api/v1/market/scatter${q}`),
     ]);
 
@@ -83,6 +84,14 @@ export default async function MercadoPage({
           subtitle="Avisos en venta (USD), recortado al p95"
         >
           <PriceHistogram data={histo} />
+        </Card>
+
+        <Card
+          title="Distribución del precio por m²"
+          subtitle="Cuántos avisos hay a cada nivel de US$/m² (solo avisos con superficie)"
+          className="lg:col-span-2"
+        >
+          <PriceHistogram data={histoPpm} unidad="ppm" />
         </Card>
 
         <Card

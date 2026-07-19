@@ -175,9 +175,18 @@ def market_breakdown(by: str = Query("departamento"),
 
 @router.get("/market/histogram")
 def market_histogram(bins: int = Query(12, ge=4, le=30),
+                     field: str = Query("precio_usd"),
                      f: dict[str, Any] = Depends(_filtros_qs)) -> dict[str, Any]:
-    """Distribución de precios (USD) en buckets para el histograma."""
-    precios = sorted(r["precio_usd"] for r in _rows(**f) if r.get("precio_usd"))
+    """Distribución en buckets para histogramas.
+    field=precio_usd → precios (USD) · field=ppm → precio por m² (USD/m²)."""
+    if field not in ("precio_usd", "ppm"):
+        raise HTTPException(400, "field debe ser precio_usd|ppm")
+    if field == "ppm":
+        # rango sano de USD/m² (descarta errores de carga tipo 45 USD/m² por m² de finca)
+        precios = sorted(r["ppm"] for r in _rows(**f)
+                         if r.get("ppm") and 100 <= r["ppm"] <= 20000)
+    else:
+        precios = sorted(r["precio_usd"] for r in _rows(**f) if r.get("precio_usd"))
     if not precios:
         return {"buckets": [], "recortados": 0}
     # Recorte al p95 para que los outliers (fincas millonarias) no aplasten el gráfico.
