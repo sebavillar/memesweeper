@@ -85,6 +85,7 @@ export default async function AvisosPage({
               <th className="px-3 py-3 text-right font-medium">m²</th>
               <th className="px-3 py-3 text-right font-medium">USD/m²</th>
               <th className="px-3 py-3 text-right font-medium">Dorm.</th>
+              <th className="px-3 py-3 text-right font-medium">Antig.</th>
               <th className="px-4 py-3 text-right font-medium">Visto</th>
             </tr>
           </thead>
@@ -121,6 +122,13 @@ export default async function AvisosPage({
                 <td className="tnum px-3 py-2.5 text-right text-ink-2">
                   {r.dormitorios ?? "—"}
                 </td>
+                <td className="tnum px-3 py-2.5 text-right text-ink-2">
+                  {r.antiguedad == null
+                    ? "—"
+                    : r.antiguedad === 0
+                      ? "a estrenar"
+                      : `${r.antiguedad} a`}
+                </td>
                 <td className="tnum px-4 py-2.5 text-right text-ink-2">
                   {fecha(r.fetched_at)}
                 </td>
@@ -128,7 +136,7 @@ export default async function AvisosPage({
             ))}
             {!listings.rows.length && (
               <tr>
-                <td colSpan={9} className="px-4 py-10 text-center text-muted">
+                <td colSpan={10} className="px-4 py-10 text-center text-muted">
                   Sin avisos para este filtro.
                 </td>
               </tr>

@@ -45,6 +45,13 @@ def init() -> None:
                 PRIMARY KEY (source, listing_id))"""
         )
         c.execute("CREATE INDEX IF NOT EXISTS ix_comp_zona ON comparables(tipo, departamento, operacion)")
+        # Migración: enriquecimiento por ficha (antigüedad). detail_at marca que la
+        # ficha ya fue visitada (con o sin dato) para no repetir pedidos.
+        cols = {r["name"] for r in c.execute("PRAGMA table_info(comparables)")}
+        if "antiguedad" not in cols:
+            c.execute("ALTER TABLE comparables ADD COLUMN antiguedad REAL")
+        if "detail_at" not in cols:
+            c.execute("ALTER TABLE comparables ADD COLUMN detail_at TEXT")
 
 
 def upsert(rows: list[dict[str, Any]]) -> int:
@@ -83,6 +90,28 @@ def query(tipo: str | None = None, departamento: str | None = None,
     args.append(limit)
     with _conn() as c:
         return [dict(r) for r in c.execute(q, args).fetchall()]
+
+
+def pending_detail(source: str | None = None, limit: int = 60) -> list[dict[str, Any]]:
+    """Avisos cuya ficha todavía no se visitó (para enriquecer antigüedad).
+    Los más recientes primero: los avisos nuevos del día entran antes."""
+    init()
+    q = "SELECT source, listing_id, url FROM comparables WHERE detail_at IS NULL AND url IS NOT NULL"
+    args: list[Any] = []
+    if source:
+        q += " AND source = ?"
+        args.append(source)
+    q += " ORDER BY fetched_at DESC LIMIT ?"
+    args.append(limit)
+    with _conn() as c:
+        return [dict(r) for r in c.execute(q, args).fetchall()]
+
+
+def set_detail(source: str, listing_id: str, antiguedad: float | None, when: str) -> None:
+    """Registra el resultado de visitar la ficha (aunque no haya dato, para no reintentar)."""
+    with _conn() as c:
+        c.execute("UPDATE comparables SET antiguedad = ?, detail_at = ? WHERE source = ? AND listing_id = ?",
+                  (antiguedad, when, source, listing_id))
 
 
 def stats() -> dict[str, Any]:

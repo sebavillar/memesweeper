@@ -35,14 +35,24 @@ def _zona_m2(p: dict[str, Any]) -> tuple[int, str]:
 
 
 def _market_stats(p: dict[str, Any]) -> dict[str, Any] | None:
-    """USD/m² real de la oferta (MercadoLibre + RE/MAX + Inmoclick) para el tipo y zona."""
+    """USD/m² real de la oferta (MercadoLibre + RE/MAX + Inmoclick) para el tipo y zona.
+    Si hay muestra suficiente de comparables con antigüedad parecida (±15 años),
+    calibra con esa banda: la edad mueve el precio y así se compara mejor."""
     comps = db.query(tipo=(p.get("tipo") or "").lower(), departamento=p.get("departamento"),
                      operacion="venta", solo_con_m2=True, limit=60)
+    banda_edad = False
+    anti = p.get("antiguedad")
+    if anti is not None:
+        misma_edad = [c for c in comps
+                      if c.get("antiguedad") is not None and abs(c["antiguedad"] - anti) <= 15]
+        if len(misma_edad) >= 5:
+            comps = misma_edad
+            banda_edad = True
     ppms = [c["precio_usd"] / c["m2_cubierta"] for c in comps
             if c.get("m2_cubierta") and c.get("precio_usd")]
     if len(ppms) < 3:
         return None
-    return {"n": len(ppms), "mediana_ppm": statistics.median(ppms)}
+    return {"n": len(ppms), "mediana_ppm": statistics.median(ppms), "banda_edad": banda_edad}
 
 
 def valuar(p: dict[str, Any]) -> dict[str, Any]:
@@ -56,6 +66,8 @@ def valuar(p: dict[str, Any]) -> dict[str, Any]:
     if market:
         m2 = round(market["mediana_ppm"])
         fuente_m2 = f"mediana de {market['n']} publicaciones · portales (ML/RE/MAX/Inmoclick)"
+        if market.get("banda_edad"):
+            fuente_m2 += " · misma banda de antigüedad"
 
     pasos: list[dict[str, Any]] = []
     base = cub * m2

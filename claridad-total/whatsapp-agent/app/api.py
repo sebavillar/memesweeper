@@ -213,7 +213,7 @@ def market_listings(page: int = Query(1, ge=1), page_size: int = Query(25, le=10
     ini = (page - 1) * page_size
     visibles = [{k: r.get(k) for k in ("source", "listing_id", "titulo", "url", "tipo",
                                        "precio_usd", "m2_cubierta", "m2_total", "ppm",
-                                       "dormitorios", "depto_norm", "fetched_at")}
+                                       "dormitorios", "antiguedad", "depto_norm", "fetched_at")}
                 for r in rows[ini:ini + page_size]]
     return {"total": len(rows), "page": page, "page_size": page_size, "rows": visibles}
 

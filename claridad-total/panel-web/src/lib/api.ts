@@ -60,6 +60,7 @@ export type ListingRow = {
   m2_total: number | null;
   ppm: number | null;
   dormitorios: number | null;
+  antiguedad: number | null;
   depto_norm: string | null;
   fetched_at: string | null;
 };

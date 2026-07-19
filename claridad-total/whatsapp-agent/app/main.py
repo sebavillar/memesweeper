@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 import functools
 
-from . import agent, db, inmoclick, remax, scraper
+from . import agent, db, enrich, inmoclick, remax, scraper
 from .api import router as api_router
 from .config import settings
 from .panel import router as panel_router
@@ -65,6 +65,15 @@ async def _market_updater() -> None:
                                  nombre, res.get("guardados"), res.get("venta_usd"))
                 except Exception as exc:  # noqa: BLE001
                     log.warning("No se pudo actualizar la oferta (%s): %s", nombre, exc)
+            # Enriquecimiento gradual: antigüedad desde las fichas de avisos
+            # nuevos (60 por fuente/día, con pausas). Ver app/enrich.py.
+            try:
+                res = await asyncio.get_running_loop().run_in_executor(
+                    None, functools.partial(enrich.run, 60))
+                log.info("Antigüedad enriquecida: %s",
+                         {k: v["con_dato"] for k, v in res["fuentes"].items()})
+            except Exception as exc:  # noqa: BLE001
+                log.warning("No se pudo enriquecer fichas: %s", exc)
             await asyncio.sleep(24 * 3600)
 
     asyncio.create_task(loop())
