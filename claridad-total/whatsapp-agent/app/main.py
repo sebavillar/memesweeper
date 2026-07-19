@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 import functools
 
-from . import agent, db, remax, scraper
+from . import agent, db, inmoclick, remax, scraper
 from .config import settings
 from .panel import router as panel_router
 from .whatsapp import send_text
@@ -47,6 +47,7 @@ async def _market_updater() -> None:
     fuentes = [
         ("MercadoLibre", functools.partial(scraper.scrape, 21)),
         ("RE/MAX", functools.partial(remax.scrape, 21)),  # ~500 avisos/día (21×24)
+        ("Inmoclick", functools.partial(inmoclick.scrape, 5)),  # Mendoza, 3 tipos × 5 pág.
     ]
 
     async def loop() -> None:
