@@ -38,7 +38,6 @@ TIPOS = {
     "departamento": "departamentos-en-venta-en-mendoza",
     "terreno": "terrenos-en-venta-en-mendoza",
 }
-CARD_SELECTORS = ["div.item", "div.property-data", "li.item"]
 
 
 def _get(url: str) -> httpx.Response:
@@ -62,15 +61,22 @@ def _sup(s: str | None) -> int | None:
     return _num(t)
 
 
-def _parse_card(card: Any, tipo: str, now: str) -> dict[str, Any]:
-    a = card.select_one("a[href*='/ficha/']")
+def _parse_card(pd: Any, tipo: str, now: str) -> dict[str, Any]:
+    """`pd` es el <div class="property-data"> (la dirección). El precio está en el
+    hermano previo (property-image) y las superficies/dormitorios en el hermano
+    siguiente (property-tags). Leemos de los hermanos para no cruzar tarjetas."""
+    img = pd.find_previous_sibling("div", class_="property-image")
+    tags = pd.find_next_sibling("div", class_="property-tags")
+
+    a = pd.select_one("a[href*='/ficha/']") or (img.select_one("a[href*='/ficha/']") if img else None)
     href = (a.get("href") if a else "") or ""
     url = (BASE.rstrip("/") + href) if href.startswith("/") else (href or None)
     # id único: /<inmobiliariaId>-<slug>/inmuebles/<inmuebleId>/ficha/...
     m = re.search(r"/(\d+)-[^/]+/inmuebles/(\d+)/", href)
     listing_id = f"{m.group(1)}-{m.group(2)}" if m else None
 
-    ptxt = _txt(card.select_one(".price"))
+    price_el = (img.select_one(".price") if img else None) or pd.find_previous("p", class_="price")
+    ptxt = _txt(price_el)
     low = ptxt.lower()
     precio = _num(ptxt)
     if "u$s" in low or "us$" in low or "usd" in low or "dól" in low or "dolar" in low:
@@ -80,15 +86,15 @@ def _parse_card(card: Any, tipo: str, now: str) -> dict[str, Any]:
     else:
         moneda = None
 
-    # Ubicación: microdatos schema.org (muy estable).
-    depto = _txt(card.select_one("[itemprop='addressLocality']")) or None
-    prov = _txt(card.select_one("[itemprop='addressRegion']")) or None
-    calle = _txt(card.select_one("[itemprop='streetAddress']")) or None
-    titulo = ", ".join(x for x in (calle, depto) if x) or _txt(card.select_one("h4")) or "Aviso Inmoclick"
+    # Ubicación: microdatos schema.org (muy estable), dentro del property-data.
+    depto = _txt(pd.select_one("[itemprop='addressLocality']")) or None
+    prov = _txt(pd.select_one("[itemprop='addressRegion']")) or None
+    calle = _txt(pd.select_one("[itemprop='streetAddress']")) or None
+    titulo = ", ".join(x for x in (calle, depto) if x) or _txt(pd.select_one("h4")) or "Aviso Inmoclick"
 
-    sup_tot = _sup(_txt(card.select_one(".label-sup-total")))
-    sup_cub = _sup(_txt(card.select_one(".label-sup-cub")))
-    dorm = _num(_txt(card.select_one(".label-dormitorio")))
+    sup_tot = _sup(_txt(tags.select_one(".label-sup-total"))) if tags else None
+    sup_cub = _sup(_txt(tags.select_one(".label-sup-cub"))) if tags else None
+    dorm = _num(_txt(tags.select_one(".label-dormitorio"))) if tags else None
 
     return {
         "source": "inmoclick", "listing_id": listing_id, "titulo": titulo[:200], "url": url,
@@ -117,18 +123,13 @@ def scrape(paginas_por_tipo: int = 5, pausa: float = 3.5) -> dict[str, Any]:
                 break
 
             soup = BeautifulSoup(r.text, "lxml")
-            cards: list[Any] = []
-            sel_ok = None
-            for sel in CARD_SELECTORS:
-                found = soup.select(sel)
-                # nos quedamos con las tarjetas que realmente tienen ficha
-                found = [c for c in found if c.select_one("a[href*='/ficha/']")]
-                if found:
-                    cards, sel_ok = found, sel
-                    break
+            # Ancla: cada aviso es un <div class="property-data"> con link a ficha.
+            # El precio y las superficies viven en sus divs hermanos (los lee _parse_card).
+            cards = [c for c in soup.select("div.property-data")
+                     if c.select_one("a[href*='/ficha/']")]
 
             diag["paginas"].append({"tipo": tipo, "pagina": page, "status": r.status_code,
-                                    "tarjetas": len(cards), "selector": sel_ok})
+                                    "tarjetas": len(cards)})
 
             if not cards:
                 if diag["muestra"] is None:
@@ -136,7 +137,8 @@ def scrape(paginas_por_tipo: int = 5, pausa: float = 3.5) -> dict[str, Any]:
                 break
 
             if diag["muestra"] is None:
-                diag["muestra"] = {"primera_tarjeta": str(cards[0])[:2200]}
+                cont = cards[0].parent or cards[0]
+                diag["muestra"] = {"tarjeta_contenedor": str(cont)[:2400]}
 
             nuevos = 0
             for c in cards:
