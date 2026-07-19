@@ -8,3 +8,5 @@ pydantic-settings>=2
 python-dotenv>=1
 pillow>=10
 pillow-heif>=0.16
+beautifulsoup4>=4.12
+lxml>=5

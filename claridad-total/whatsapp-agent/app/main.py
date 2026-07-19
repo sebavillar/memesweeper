@@ -15,7 +15,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, db, meli
+from . import agent, db, scraper
 from .config import settings
 from .panel import router as panel_router
 from .whatsapp import send_text
@@ -44,10 +44,11 @@ async def _market_updater() -> None:
         await asyncio.sleep(25)  # dejar que termine de arrancar
         while True:
             try:
-                res = await asyncio.get_running_loop().run_in_executor(None, meli.fetch, 300)
-                log.info("Oferta MercadoLibre actualizada: %s", res)
+                res = await asyncio.get_running_loop().run_in_executor(None, scraper.scrape, 6)
+                log.info("Oferta actualizada (scraper): guardados=%s venta_usd=%s",
+                         res.get("guardados"), res.get("venta_usd"))
             except Exception as exc:  # noqa: BLE001
-                log.warning("No se pudo actualizar la oferta (MercadoLibre): %s", exc)
+                log.warning("No se pudo actualizar la oferta: %s", exc)
             await asyncio.sleep(24 * 3600)
 
     asyncio.create_task(loop())
