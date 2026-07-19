@@ -54,6 +54,7 @@ const PILL_STYLE: Record<string, string> = {
   mercadolibre: "bg-[#9C6A15]/10 text-[#7a5410]",
   remax: "bg-[#0993ab]/10 text-[#076c7c]",
   inmoclick: "bg-[#7a5bd0]/10 text-[#5b41a8]",
+  mendozaprop: "bg-[#0ca30c]/10 text-[#0a7d0a]",
   propio: "bg-[#d54f74]/10 text-[#a83b58]",
 };
 

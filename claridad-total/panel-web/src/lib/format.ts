@@ -26,5 +26,6 @@ export const FUENTES: Record<string, string> = {
   mercadolibre: "ML",
   remax: "RE/MAX",
   inmoclick: "Inmoclick",
+  mendozaprop: "MendozaProp",
   propio: "Propio",
 };

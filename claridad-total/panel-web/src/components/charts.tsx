@@ -460,6 +460,7 @@ export function FuenteBars({
     mercadolibre: "MercadoLibre",
     remax: "RE/MAX",
     inmoclick: "Inmoclick",
+    mendozaprop: "MendozaProp",
   };
   const rows = data.map((d) => ({ ...d, nombre: NOMBRES[d.grupo] || d.grupo }));
   if (!rows.length) return <Empty />;
