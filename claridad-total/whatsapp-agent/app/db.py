@@ -119,7 +119,11 @@ def actividad(dias: int = 30) -> dict[str, Any]:
 
 
 def query(tipo: str | None = None, departamento: str | None = None,
-          operacion: str = "venta", solo_con_m2: bool = False, limit: int = 8) -> list[dict[str, Any]]:
+          operacion: str = "venta", solo_con_m2: bool = False,
+          limit: int | None = 8) -> list[dict[str, Any]]:
+    """Comparables filtrados. Orden DETERMINISTA (fecha, fuente, id) para que el
+    resultado no cambie entre llamadas cuando hay muchos avisos con la misma
+    marca de tiempo (p. ej. una carga masiva de una fuente). limit=None = sin tope."""
     init()
     q = "SELECT * FROM comparables WHERE precio_usd > 0"
     args: list[Any] = []
@@ -134,8 +138,12 @@ def query(tipo: str | None = None, departamento: str | None = None,
         args += [f"%{departamento}%", f"%{departamento}%"]
     if solo_con_m2:
         q += " AND m2_cubierta > 0"
-    q += " ORDER BY fetched_at DESC LIMIT ?"
-    args.append(limit)
+    # Desempate por source+listing_id: sin esto, los avisos con igual fetched_at
+    # salen en orden físico arbitrario y el "top N" varía entre consultas.
+    q += " ORDER BY fetched_at DESC, source, listing_id"
+    if limit is not None:
+        q += " LIMIT ?"
+        args.append(limit)
     with _conn() as c:
         return [dict(r) for r in c.execute(q, args).fetchall()]
 

@@ -34,19 +34,23 @@ def _zona_m2(p: dict[str, Any]) -> tuple[int, str]:
     return _DEFAULT_M2, _norm(p.get("departamento") or "zona")
 
 
-def _comps_zona(p: dict[str, Any], solo_con_m2: bool = False, limit: int = 400) -> list[dict[str, Any]]:
+def _comps_zona(p: dict[str, Any], solo_con_m2: bool = False) -> list[dict[str, Any]]:
     """Comparables del MISMO tipo y MISMO departamento de Mendoza que el inmueble.
     Matchea por departamento CANÓNICO (no por texto literal): así 'Capital Mendoza'
-    de una propiedad matchea con 'Capital', 'Ciudad de Mendoza', etc. de los avisos."""
+    de una propiedad matchea con 'Capital', 'Ciudad de Mendoza', etc. de los avisos.
+
+    Trae TODOS los de la zona (sin tope) y con orden determinista: así el resultado
+    (y por ende la valuación) no cambia entre aperturas ni queda sesgado hacia la
+    fuente que cargó más avisos recientes. La base es chica; el costo es marginal."""
     tipo = (p.get("tipo") or "").lower()
     depto = zonas.de_row(p)
-    if depto:  # traemos por tipo (amplio) y filtramos por depto canónico en memoria
+    if depto:  # traemos por tipo (amplio, sin tope) y filtramos por depto canónico
         rows = db.query(tipo=tipo, departamento=None, operacion="venta",
-                        solo_con_m2=solo_con_m2, limit=limit)
+                        solo_con_m2=solo_con_m2, limit=None)
         rows = [c for c in rows if zonas.de_row(c) == depto]
     else:  # sin departamento reconocido: match textual clásico
         rows = db.query(tipo=tipo, departamento=p.get("departamento"), operacion="venta",
-                        solo_con_m2=solo_con_m2, limit=limit)
+                        solo_con_m2=solo_con_m2, limit=None)
     # Deduplicar reposteos entre portales: la misma unidad no debe pesar 2 o 3
     # veces en la mediana de US$/m² ni aparecer repetida en los comparables.
     return dedup.dedupe(rows, zonas.de_row)
@@ -148,8 +152,12 @@ def comparables(p: dict[str, Any], limite: int = 6) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
 
     # Priorizamos comparables CON m² (para poder mostrar US$/m²), luego el resto.
-    zona_comps = _comps_zona(p, limit=200)
-    zona_comps.sort(key=lambda c: (not (c.get("m2_cubierta") and c.get("precio_usd")),))
+    # Desempate estable (source, listing_id) para que los 6 mostrados no cambien
+    # entre aperturas.
+    zona_comps = _comps_zona(p)
+    zona_comps.sort(key=lambda c: (
+        0 if (c.get("m2_cubierta") and c.get("precio_usd")) else 1,
+        c.get("source") or "", str(c.get("listing_id") or "")))
     for c in zona_comps[:limite]:
         cub = c.get("m2_cubierta") or 0
         precio = c.get("precio_usd") or 0
