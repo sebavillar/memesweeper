@@ -14,10 +14,17 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from . import analysis, argenprop, db, inventory, store, zonas
+from . import analysis, argenprop, db, dedup, inventory, store, zonas
 from .panel import _auth  # misma autenticación que el panel clásico
 
 router = APIRouter(prefix="/api/v1", dependencies=[Depends(_auth)])
+
+
+def _unicos(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Colapsa avisos repetidos entre portales a una fila por propiedad. Se usa en
+    toda la analítica (totales, medianas, gráficos) para no contar la misma unidad
+    2 o 3 veces. El volumen por fuente y la actividad de scraping quedan en crudo."""
+    return dedup.dedupe(rows, lambda r: r.get("depto_norm"))
 
 
 def _rows(
@@ -157,7 +164,12 @@ def market_activity(dias: int = Query(30, ge=1, le=120)) -> dict[str, Any]:
 
 @router.get("/market/summary")
 def market_summary(f: dict[str, Any] = Depends(_filtros_qs)) -> dict[str, Any]:
-    return _stats_de(_rows(**f))
+    raw = _rows(**f)
+    unicos = _unicos(raw)
+    st = _stats_de(unicos)  # n = propiedades únicas (deduplicadas)
+    st["n_avisos"] = len(raw)             # avisos crudos (con repetidos entre portales)
+    st["n_duplicados"] = len(raw) - len(unicos)
+    return st
 
 
 @router.get("/market/breakdown")
@@ -167,8 +179,11 @@ def market_breakdown(by: str = Query("departamento"),
     if by not in ("departamento", "tipo", "fuente"):
         raise HTTPException(400, "by debe ser departamento|tipo|fuente")
     key = {"departamento": "depto_norm", "tipo": "tipo", "fuente": "source"}[by]
+    # Por departamento/tipo contamos propiedades únicas; por fuente mostramos el
+    # volumen crudo (cuántos avisos aporta cada portal, sin deduplicar).
+    base = _rows(**f) if by == "fuente" else _unicos(_rows(**f))
     grupos: dict[str, list[dict[str, Any]]] = {}
-    for r in _rows(**f):
+    for r in base:
         g = r.get(key)
         if g:
             grupos.setdefault(g, []).append(r)
@@ -185,12 +200,13 @@ def market_histogram(bins: int = Query(12, ge=4, le=30),
     field=precio_usd → precios (USD) · field=ppm → precio por m² (USD/m²)."""
     if field not in ("precio_usd", "ppm"):
         raise HTTPException(400, "field debe ser precio_usd|ppm")
+    filas = _unicos(_rows(**f))
     if field == "ppm":
         # rango sano de USD/m² (descarta errores de carga tipo 45 USD/m² por m² de finca)
-        precios = sorted(r["ppm"] for r in _rows(**f)
+        precios = sorted(r["ppm"] for r in filas
                          if r.get("ppm") and 100 <= r["ppm"] <= 20000)
     else:
-        precios = sorted(r["precio_usd"] for r in _rows(**f) if r.get("precio_usd"))
+        precios = sorted(r["precio_usd"] for r in filas if r.get("precio_usd"))
     if not precios:
         return {"buckets": [], "recortados": 0}
     # Recorte al p95 para que los outliers (fincas millonarias) no aplasten el gráfico.
@@ -215,7 +231,7 @@ def market_age(f: dict[str, Any] = Depends(_filtros_qs)) -> dict[str, Any]:
     """Relación precio por m² vs antigüedad: puntos individuales + mediana por
     banda de edad. Solo avisos ya enriquecidos con antigüedad (crece a diario)."""
     pts = []
-    for r in _rows(**f):
+    for r in _unicos(_rows(**f)):
         edad = r.get("antiguedad")
         if edad is None or not r.get("ppm") or not (100 <= r["ppm"] <= 20000) or edad > 100:
             continue
@@ -233,7 +249,7 @@ def market_age(f: dict[str, Any] = Depends(_filtros_qs)) -> dict[str, Any]:
 def market_privado_gap(f: dict[str, Any] = Depends(_filtros_qs)) -> dict[str, Any]:
     """Diferencial de precio por m²: barrio privado vs abierto (mediana), global
     y por departamento (solo donde ambos lados tienen muestra >=5)."""
-    rows = [r for r in _rows(**f) if r.get("ppm") and 100 <= r["ppm"] <= 20000]
+    rows = [r for r in _unicos(_rows(**f)) if r.get("ppm") and 100 <= r["ppm"] <= 20000]
 
     def _med(vals: list[float]) -> int | None:
         return round(statistics.median(vals)) if vals else None
@@ -270,7 +286,7 @@ def market_scatter(limit: int = Query(600, le=2000),
                    f: dict[str, Any] = Depends(_filtros_qs)) -> list[dict[str, Any]]:
     """Puntos precio vs superficie (para dispersión). Filtra outliers obvios."""
     pts = []
-    for r in _rows(**f):
+    for r in _unicos(_rows(**f)):
         m2 = r.get("m2_cubierta") or r.get("m2_total")
         if not (r.get("precio_usd") and m2 and 10 <= m2 <= 2000 and r["precio_usd"] <= 2_000_000):
             continue
@@ -283,8 +299,9 @@ def market_scatter(limit: int = Query(600, le=2000),
 def market_listings(page: int = Query(1, ge=1), page_size: int = Query(25, le=100),
                     sort: str = Query("-fetched_at"),
                     f: dict[str, Any] = Depends(_filtros_qs)) -> dict[str, Any]:
-    """Tabla paginada de avisos (con orden)."""
-    rows = _rows(**f)
+    """Tabla paginada de avisos: una fila por propiedad única (deduplicada entre
+    portales). dup_count/dup_sources indican en cuántos portales aparece."""
+    rows = _unicos(_rows(**f))
     campo = sort.lstrip("-")
     if campo not in ("precio_usd", "ppm", "m2_cubierta", "fetched_at"):
         raise HTTPException(400, "sort inválido")
@@ -293,7 +310,7 @@ def market_listings(page: int = Query(1, ge=1), page_size: int = Query(25, le=10
     visibles = [{k: r.get(k) for k in ("source", "listing_id", "titulo", "url", "tipo",
                                        "precio_usd", "m2_cubierta", "m2_total", "ppm",
                                        "dormitorios", "antiguedad", "barrio_privado",
-                                       "depto_norm", "fetched_at")}
+                                       "depto_norm", "fetched_at", "dup_count", "dup_sources")}
                 for r in rows[ini:ini + page_size]]
     return {"total": len(rows), "page": page, "page_size": page_size, "rows": visibles}
 

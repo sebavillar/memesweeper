@@ -10,7 +10,7 @@ import statistics
 import unicodedata
 from typing import Any
 
-from . import db, inventory, zonas
+from . import db, dedup, inventory, zonas
 
 # USD/m² de referencia por zona (calibración de muestra Mendoza 2025).
 _ZONA_M2 = {
@@ -43,10 +43,13 @@ def _comps_zona(p: dict[str, Any], solo_con_m2: bool = False, limit: int = 400) 
     if depto:  # traemos por tipo (amplio) y filtramos por depto canónico en memoria
         rows = db.query(tipo=tipo, departamento=None, operacion="venta",
                         solo_con_m2=solo_con_m2, limit=limit)
-        return [c for c in rows if zonas.de_row(c) == depto]
-    # sin departamento reconocido: caemos al match textual clásico
-    return db.query(tipo=tipo, departamento=p.get("departamento"), operacion="venta",
-                    solo_con_m2=solo_con_m2, limit=limit)
+        rows = [c for c in rows if zonas.de_row(c) == depto]
+    else:  # sin departamento reconocido: match textual clásico
+        rows = db.query(tipo=tipo, departamento=p.get("departamento"), operacion="venta",
+                        solo_con_m2=solo_con_m2, limit=limit)
+    # Deduplicar reposteos entre portales: la misma unidad no debe pesar 2 o 3
+    # veces en la mediana de US$/m² ni aparecer repetida en los comparables.
+    return dedup.dedupe(rows, zonas.de_row)
 
 
 def _market_stats(p: dict[str, Any]) -> dict[str, Any] | None:

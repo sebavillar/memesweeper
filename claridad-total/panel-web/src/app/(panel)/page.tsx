@@ -66,7 +66,15 @@ export default async function MercadoPage({
       <FilterBar filtros={filtros} />
 
       <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi label="Avisos en venta" value={n(summary.n)} hint={`${n(summary.con_m2)} con superficie`} />
+        <Kpi
+          label="Propiedades únicas"
+          value={n(summary.n)}
+          hint={
+            summary.n_duplicados
+              ? `${n(summary.n_avisos)} avisos · ${n(summary.n_duplicados)} repetidos en varios portales`
+              : `${n(summary.con_m2)} con superficie`
+          }
+        />
         <Kpi label="Precio mediano" value={usd(summary.mediana_usd)} />
         <Kpi
           label="USD/m² mediano"

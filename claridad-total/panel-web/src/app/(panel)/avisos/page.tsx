@@ -4,7 +4,7 @@ import Link from "next/link";
 import { api, qsMercado, type Filtros, type Listings } from "@/lib/api";
 import { FilterBar } from "@/components/filter-bar";
 import { Card, SourcePill } from "@/components/ui";
-import { fecha, n, usd } from "@/lib/format";
+import { fecha, n, usd, FUENTES } from "@/lib/format";
 
 const SORTS: { key: string; label: string }[] = [
   { key: "-fetched_at", label: "Más recientes" },
@@ -51,7 +51,8 @@ export default async function AvisosPage({
       <header className="mb-5">
         <h1 className="font-serif text-2xl text-ink">Avisos relevados</h1>
         <p className="mt-0.5 text-sm text-ink-2">
-          {n(listings.total)} avisos en venta con el filtro actual
+          {n(listings.total)} propiedades únicas con el filtro actual · repetidas entre
+          portales se muestran una sola vez
         </p>
       </header>
 
@@ -119,6 +120,16 @@ export default async function AvisosPage({
                         r.titulo || r.listing_id
                       )}
                     </span>
+                    {r.dup_count && r.dup_count > 1 && (
+                      <span
+                        title={`Publicada en: ${(r.dup_sources || [])
+                          .map((s) => FUENTES[s] || s)
+                          .join(", ")}`}
+                        className="shrink-0 rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand-ink"
+                      >
+                        ×{r.dup_count}
+                      </span>
+                    )}
                   </span>
                 </td>
                 <td className="px-3 py-2.5">

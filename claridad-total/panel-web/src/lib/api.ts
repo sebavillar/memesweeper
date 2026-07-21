@@ -47,12 +47,14 @@ export type PrivadoGap = {
 };
 
 export type Summary = {
-  n: number;
+  n: number; // propiedades únicas (deduplicadas entre portales)
   mediana_usd: number | null;
   ppm_mediano: number | null;
   ppm_p25: number | null;
   ppm_p75: number | null;
   con_m2: number;
+  n_avisos?: number; // avisos crudos (con repetidos entre portales)
+  n_duplicados?: number; // avisos que eran repost de otra propiedad
 };
 
 export type BreakdownRow = Summary & { grupo: string };
@@ -85,6 +87,8 @@ export type ListingRow = {
   barrio_privado: number | null;
   depto_norm: string | null;
   fetched_at: string | null;
+  dup_count?: number; // en cuántos portales aparece esta propiedad
+  dup_sources?: string[]; // qué portales
 };
 
 export type Listings = {
