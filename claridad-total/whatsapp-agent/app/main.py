@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -29,6 +30,13 @@ log = logging.getLogger("main")
 app = FastAPI(title="Claridad Total · Agente de WhatsApp", version="0.4.0")
 app.include_router(panel_router)
 app.include_router(api_router)  # API JSON para el panel web (Next.js)
+
+# CORS para el "bookmarklet" de ingesta: permite que un clic desde argenprop.com
+# suba el HTML al /api/v1/ingest. Sin cookies (auth por header Basic), así que
+# allow_origins="*" es seguro: sin la clave del panel igual no entra.
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+)
 
 # Fotos de propiedades: guardadas en el disco persistente y servidas públicamente
 # en /media para que WhatsApp/Meta puedan descargarlas.
