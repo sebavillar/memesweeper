@@ -10,42 +10,14 @@ departamentos oficiales de Mendoza para poder agrupar y filtrar con sentido."""
 from __future__ import annotations
 
 import statistics
-import unicodedata
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from . import analysis, db, inventory, store
+from . import analysis, db, inventory, store, zonas
 from .panel import _auth  # misma autenticación que el panel clásico
 
 router = APIRouter(prefix="/api/v1", dependencies=[Depends(_auth)])
-
-# Departamentos oficiales de Mendoza (clave normalizada → nombre para mostrar).
-_DEPTOS = {
-    "capital": "Capital", "ciudad de mendoza": "Capital", "ciudad": "Capital",
-    "godoy cruz": "Godoy Cruz", "guaymallen": "Guaymallén", "las heras": "Las Heras",
-    "maipu": "Maipú", "lujan de cuyo": "Luján de Cuyo", "lujan": "Luján de Cuyo",
-    "chacras de coria": "Luján de Cuyo", "lavalle": "Lavalle",
-    "san martin": "San Martín", "junin": "Junín", "rivadavia": "Rivadavia",
-    "santa rosa": "Santa Rosa", "la paz": "La Paz", "tupungato": "Tupungato",
-    "tunuyan": "Tunuyán", "san carlos": "San Carlos", "san rafael": "San Rafael",
-    "general alvear": "General Alvear", "malargue": "Malargüe",
-}
-# Orden de matcheo: claves más largas primero ("lujan de cuyo" antes que "lujan").
-_DEPTO_KEYS = sorted(_DEPTOS, key=len, reverse=True)
-
-
-def _norm(s: str) -> str:
-    s = unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode()
-    return s.lower().strip()
-
-
-def _depto_de(row: dict[str, Any]) -> str | None:
-    texto = _norm(f"{row.get('departamento') or ''} {row.get('barrio') or ''} {row.get('titulo') or ''}")
-    for k in _DEPTO_KEYS:
-        if k in texto:
-            return _DEPTOS[k]
-    return None
 
 
 def _rows(
@@ -68,7 +40,7 @@ def _rows(
 
     out = []
     for r in raw:
-        r["depto_norm"] = _depto_de(r)
+        r["depto_norm"] = zonas.de_row(r)
         m2 = r.get("m2_cubierta") or r.get("m2_total")
         usd = r.get("precio_usd")
         r["ppm"] = round(usd / m2) if usd and m2 else None
@@ -154,6 +126,13 @@ def market_filters() -> dict[str, Any]:
         "fuentes_last": fuentes_last,
         "total": st["total"], "last_fetch": st["last_fetch"],
     }
+
+
+@router.get("/market/activity")
+def market_activity(dias: int = Query(30, ge=1, le=120)) -> dict[str, Any]:
+    """Actividad día por día: avisos nuevos (por fuente), cambios de precio y
+    stock visto. Para el tablero 'cómo evoluciona la base'."""
+    return db.actividad(dias)
 
 
 @router.get("/market/summary")

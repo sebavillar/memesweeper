@@ -138,6 +138,16 @@ export type Valuacion = {
   fuentes: Record<string, string>;
 };
 
+export type Actividad = {
+  dias: {
+    fecha: string;
+    nuevos: number;
+    por_fuente: Record<string, number>;
+    cambios_precio: number;
+    vistos: number;
+  }[];
+};
+
 export type LeadMsg = { role: "user" | "assistant"; text: string };
 
 export type Lead = {

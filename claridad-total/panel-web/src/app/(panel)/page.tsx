@@ -11,6 +11,7 @@ import {
   type ScatterPoint,
   type Summary,
 } from "@/lib/api";
+import Link from "next/link";
 import { FilterBar } from "@/components/filter-bar";
 import { Card, Kpi } from "@/components/ui";
 import {
@@ -54,8 +55,10 @@ export default async function MercadoPage({
         <div>
           <h1 className="font-serif text-2xl text-ink">Mercado</h1>
           <p className="mt-0.5 text-sm text-ink-2">
-            Oferta real relevada de MercadoLibre, RE/MAX e Inmoclick ·
-            actualizada {fecha(filtros.last_fetch)}
+            Oferta real relevada de MercadoLibre, RE/MAX, Inmoclick, MendozaProp e InmoUp ·{" "}
+            <Link href="/actividad" className="text-brand-ink underline decoration-dotted underline-offset-2 hover:decoration-solid">
+              actualizada {fecha(filtros.last_fetch)}
+            </Link>
           </p>
         </div>
       </header>
@@ -89,7 +92,7 @@ export default async function MercadoPage({
           title="Distribución de precios"
           subtitle="Avisos en venta (USD), recortado al p95"
         >
-          <PriceHistogram data={histo} />
+          <PriceHistogram data={histo} clickable />
         </Card>
 
         <Card

@@ -10,7 +10,7 @@ import statistics
 import unicodedata
 from typing import Any
 
-from . import db, inventory
+from . import db, inventory, zonas
 
 # USD/m² de referencia por zona (calibración de muestra Mendoza 2025).
 _ZONA_M2 = {
@@ -34,12 +34,26 @@ def _zona_m2(p: dict[str, Any]) -> tuple[int, str]:
     return _DEFAULT_M2, _norm(p.get("departamento") or "zona")
 
 
+def _comps_zona(p: dict[str, Any], solo_con_m2: bool = False, limit: int = 400) -> list[dict[str, Any]]:
+    """Comparables del MISMO tipo y MISMO departamento de Mendoza que el inmueble.
+    Matchea por departamento CANÓNICO (no por texto literal): así 'Capital Mendoza'
+    de una propiedad matchea con 'Capital', 'Ciudad de Mendoza', etc. de los avisos."""
+    tipo = (p.get("tipo") or "").lower()
+    depto = zonas.de_row(p)
+    if depto:  # traemos por tipo (amplio) y filtramos por depto canónico en memoria
+        rows = db.query(tipo=tipo, departamento=None, operacion="venta",
+                        solo_con_m2=solo_con_m2, limit=limit)
+        return [c for c in rows if zonas.de_row(c) == depto]
+    # sin departamento reconocido: caemos al match textual clásico
+    return db.query(tipo=tipo, departamento=p.get("departamento"), operacion="venta",
+                    solo_con_m2=solo_con_m2, limit=limit)
+
+
 def _market_stats(p: dict[str, Any]) -> dict[str, Any] | None:
-    """USD/m² real de la oferta (MercadoLibre + RE/MAX + Inmoclick) para el tipo y zona.
+    """USD/m² real de la oferta (todas las fuentes) para el tipo y zona del inmueble.
     Si hay muestra suficiente de comparables con antigüedad parecida (±15 años),
     calibra con esa banda: la edad mueve el precio y así se compara mejor."""
-    comps = db.query(tipo=(p.get("tipo") or "").lower(), departamento=p.get("departamento"),
-                     operacion="venta", solo_con_m2=True, limit=60)
+    comps = _comps_zona(p, solo_con_m2=True)
     # Si el inmueble está en barrio privado, comparar contra otros barrios privados
     # (el premium de seguridad/amenities distorsionaría la mediana general).
     banda_privado = False
@@ -128,10 +142,12 @@ def valuar(p: dict[str, Any]) -> dict[str, Any]:
 def comparables(p: dict[str, Any], limite: int = 6) -> list[dict[str, Any]]:
     """Comparables: primero oferta real de MercadoLibre (misma zona/tipo), luego
     completamos con el inventario propio."""
-    tipo = (p.get("tipo") or "").lower()
     out: list[dict[str, Any]] = []
 
-    for c in db.query(tipo=tipo, departamento=p.get("departamento"), operacion="venta", limit=limite):
+    # Priorizamos comparables CON m² (para poder mostrar US$/m²), luego el resto.
+    zona_comps = _comps_zona(p, limit=200)
+    zona_comps.sort(key=lambda c: (not (c.get("m2_cubierta") and c.get("precio_usd")),))
+    for c in zona_comps[:limite]:
         cub = c.get("m2_cubierta") or 0
         precio = c.get("precio_usd") or 0
         out.append({"id": c.get("listing_id"), "titulo": c.get("titulo") or "Publicación",

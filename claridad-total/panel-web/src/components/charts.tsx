@@ -6,6 +6,7 @@
  *  - tooltip en todas las formas; leyenda cuando hay ≥2 series
  *  - paleta validada (all-pairs PASS): teal, dorado, violeta, rosa */
 
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Bar,
   BarChart,
@@ -118,16 +119,35 @@ export function DeptoBars({ data }: { data: BreakdownRow[] }) {
 export function PriceHistogram({
   data,
   unidad = "usd",
+  clickable = false,
 }: {
   data: Histogram;
   unidad?: "usd" | "ppm";
+  clickable?: boolean;
 }) {
+  const router = useRouter();
+  const sp = useSearchParams();
   if (!data.buckets.length) return <Empty />;
   const fmt = unidad === "ppm" ? (v: number) => n(v) : compact;
   const rows = data.buckets.map((b) => ({
     ...b,
     rango: `${fmt(b.desde)}–${fmt(b.hasta)}`,
   }));
+
+  // Clic en una barra (solo en el histograma de precios USD) → abre esos avisos.
+  const abrir = clickable && unidad === "usd"
+    ? (bucket: { desde: number; hasta: number }) => {
+        const p = new URLSearchParams();
+        for (const k of ["depto", "tipo", "fuente", "privado"]) {
+          const v = sp.get(k);
+          if (v) p.set(k, v);
+        }
+        p.set("usd_min", String(Math.floor(bucket.desde)));
+        p.set("usd_max", String(Math.ceil(bucket.hasta)));
+        router.push(`/avisos?${p.toString()}`);
+      }
+    : undefined;
+
   return (
     <div className="h-56">
       <ResponsiveContainer width="100%" height="100%">
@@ -157,9 +177,20 @@ export function PriceHistogram({
               ) : null
             }
           />
-          <Bar dataKey="n" fill={S[0]} radius={[4, 4, 0, 0]} />
+          <Bar
+            dataKey="n"
+            fill={S[0]}
+            radius={[4, 4, 0, 0]}
+            cursor={abrir ? "pointer" : undefined}
+            onClick={abrir ? ((_: unknown, i: number) => abrir(rows[i])) as never : undefined}
+          />
         </BarChart>
       </ResponsiveContainer>
+      {abrir && (
+        <p className="mt-1 text-[11px] text-muted">
+          Tocá una barra para ver los avisos de ese rango de precio.
+        </p>
+      )}
       {data.recortados > 0 && (
         <p className="mt-1 text-[11px] text-muted">
           {data.recortados} avisos por encima del p95 quedan fuera del gráfico.

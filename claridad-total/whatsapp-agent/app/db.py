@@ -55,6 +55,15 @@ def init() -> None:
             c.execute("ALTER TABLE comparables ADD COLUMN detail_at TEXT")
         if "barrio_privado" not in cols:
             c.execute("ALTER TABLE comparables ADD COLUMN barrio_privado INTEGER")
+        # Migración: historial de actividad. first_seen = cuándo entró a la base;
+        # precio_prev/precio_cambio_at = último cambio de precio detectado.
+        if "first_seen" not in cols:
+            c.execute("ALTER TABLE comparables ADD COLUMN first_seen TEXT")
+            c.execute("UPDATE comparables SET first_seen = fetched_at WHERE first_seen IS NULL")
+        if "precio_prev" not in cols:
+            c.execute("ALTER TABLE comparables ADD COLUMN precio_prev REAL")
+        if "precio_cambio_at" not in cols:
+            c.execute("ALTER TABLE comparables ADD COLUMN precio_cambio_at TEXT")
 
 
 def upsert(rows: list[dict[str, Any]]) -> int:
@@ -64,13 +73,49 @@ def upsert(rows: list[dict[str, Any]]) -> int:
     init()
     placeholders = ",".join(f":{c}" for c in _COLS)
     updates = ",".join(f"{c}=excluded.{c}" for c in _COLS if c not in ("source", "listing_id"))
+    # En un aviso ya existente: NO pisamos first_seen (fecha de alta), y si cambió
+    # el precio en USD guardamos el anterior + la fecha del cambio.
+    cambio = ("excluded.precio_usd IS NOT NULL AND comparables.precio_usd IS NOT NULL "
+              "AND excluded.precio_usd <> comparables.precio_usd")
     with _conn() as c:
         c.executemany(
-            f"INSERT INTO comparables ({','.join(_COLS)}) VALUES ({placeholders}) "
-            f"ON CONFLICT(source, listing_id) DO UPDATE SET {updates}",
+            f"INSERT INTO comparables ({','.join(_COLS)}, first_seen) "
+            f"VALUES ({placeholders}, :fetched_at) "
+            f"ON CONFLICT(source, listing_id) DO UPDATE SET {updates}, "
+            f"precio_prev = CASE WHEN {cambio} THEN comparables.precio_usd ELSE comparables.precio_prev END, "
+            f"precio_cambio_at = CASE WHEN {cambio} THEN excluded.fetched_at ELSE comparables.precio_cambio_at END",
             [{k: r.get(k) for k in _COLS} for r in rows],
         )
     return len(rows)
+
+
+def actividad(dias: int = 30) -> dict[str, Any]:
+    """Resumen día por día de la base: avisos nuevos (por first_seen) por fuente,
+    cambios de precio, y stock activo visto ese día. Para el tablero de actividad."""
+    init()
+    with _conn() as c:
+        nuevos = c.execute(
+            "SELECT substr(first_seen,1,10) d, source, COUNT(*) n FROM comparables "
+            "WHERE first_seen IS NOT NULL GROUP BY d, source").fetchall()
+        cambios = c.execute(
+            "SELECT substr(precio_cambio_at,1,10) d, COUNT(*) n FROM comparables "
+            "WHERE precio_cambio_at IS NOT NULL GROUP BY d").fetchall()
+        vistos = c.execute(
+            "SELECT substr(fetched_at,1,10) d, COUNT(*) n FROM comparables "
+            "WHERE fetched_at IS NOT NULL GROUP BY d").fetchall()
+    dnuevos: dict[str, dict[str, int]] = {}
+    for r in nuevos:
+        dnuevos.setdefault(r["d"], {})[r["source"]] = r["n"]
+    dcambios = {r["d"]: r["n"] for r in cambios}
+    dvistos = {r["d"]: r["n"] for r in vistos}
+    fechas = sorted(set(dnuevos) | set(dcambios) | set(dvistos), reverse=True)[:dias]
+    return {"dias": [{
+        "fecha": f,
+        "nuevos": sum(dnuevos.get(f, {}).values()),
+        "por_fuente": dnuevos.get(f, {}),
+        "cambios_precio": dcambios.get(f, 0),
+        "vistos": dvistos.get(f, 0),
+    } for f in fechas]}
 
 
 def query(tipo: str | None = None, departamento: str | None = None,
