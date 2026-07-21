@@ -58,7 +58,7 @@ async def _market_updater() -> None:
         ("MercadoLibre", functools.partial(scraper.scrape, 21)),
         ("RE/MAX", functools.partial(remax.scrape, 21)),  # ~500 avisos/día (21×24)
         ("Inmoclick", functools.partial(inmoclick.scrape, 5)),  # Mendoza, 3 tipos × 5 pág.
-        ("MendozaProp", functools.partial(mendozaprop.scrape, 25)),  # API JSON, venta
+        ("MendozaProp", functools.partial(mendozaprop.scrape, 60)),  # API JSON venta, offset+limit (auto-corta al agotar; ~6.000 máx.)
         ("InmoUp", functools.partial(inmoup.scrape, 25)),  # API JSON, 4 grupos, trae antigüedad (auto-corta al agotar stock)
     ]
 
