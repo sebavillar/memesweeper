@@ -42,5 +42,6 @@ export const FUENTES: Record<string, string> = {
   inmoclick: "Inmoclick",
   mendozaprop: "MendozaProp",
   inmoup: "InmoUp",
+  argenprop: "Argenprop",
   propio: "Propio",
 };

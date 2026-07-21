@@ -493,6 +493,7 @@ export function FuenteBars({
     inmoclick: "Inmoclick",
     mendozaprop: "MendozaProp",
     inmoup: "InmoUp",
+    argenprop: "Argenprop",
   };
   const rows = data.map((d) => ({ ...d, nombre: NOMBRES[d.grupo] || d.grupo }));
   if (!rows.length) return <Empty />;

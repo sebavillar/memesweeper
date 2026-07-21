@@ -12,9 +12,9 @@ from __future__ import annotations
 import statistics
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from . import analysis, db, inventory, store, zonas
+from . import analysis, argenprop, db, inventory, store, zonas
 from .panel import _auth  # misma autenticación que el panel clásico
 
 router = APIRouter(prefix="/api/v1", dependencies=[Depends(_auth)])
@@ -126,6 +126,26 @@ def market_filters() -> dict[str, Any]:
         "fuentes_last": fuentes_last,
         "total": st["total"], "last_fetch": st["last_fetch"],
     }
+
+
+_PARSERS = {"argenprop": argenprop.parse_cards}
+
+
+@router.post("/ingest")
+async def ingest(request: Request, source: str = Query(...),
+                 page: int = Query(1)) -> dict[str, Any]:
+    """Recibe HTML crudo bajado por el usuario desde su IP residencial (portales
+    que bloquean IPs de datacenter, como Argenprop) y lo parsea + guarda acá."""
+    parser = _PARSERS.get(source)
+    if not parser:
+        raise HTTPException(400, f"source '{source}' no soportado (disponibles: {list(_PARSERS)})")
+    html = (await request.body()).decode("utf-8", "replace")
+    rows, diag = parser(html)
+    guardados = db.upsert(rows)
+    db.marcar_privados()
+    venta_usd = sum(1 for r in rows if r.get("precio_usd"))
+    return {"source": source, "page": page, "recibido_bytes": len(html),
+            "guardados": guardados, "venta_usd": venta_usd, "diagnostico": diag}
 
 
 @router.get("/market/activity")

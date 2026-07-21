@@ -381,7 +381,7 @@ def inventario_detalle(prop_id: str) -> HTMLResponse:
     )
     # Etiqueta por portal (mismo color dorado para oferta externa; gris para propio).
     _PILL = {"mercadolibre": "ML", "remax": "RE/MAX", "inmoclick": "Inmoclick",
-             "mendozaprop": "MendozaProp", "inmoup": "InmoUp"}
+             "mendozaprop": "MendozaProp", "inmoup": "InmoUp", "argenprop": "Argenprop"}
     comp_rows = ""
     for c in val["comparables"]:
         src = c.get("source")
@@ -427,7 +427,7 @@ def inventario_detalle(prop_id: str) -> HTMLResponse:
       <div style="margin-top:16px"><div class="sub" style="text-transform:uppercase;font-size:.68rem;margin-bottom:6px">Comparables (tu inventario)</div>
         <table><thead><tr><th>Propiedad</th><th>Precio</th><th>US$/m²</th><th>Estado</th></tr></thead><tbody>{comps}</tbody></table></div>
     </div>
-    <p class="foot">{mkt_note}. Fuentes: <b>MercadoLibre</b>, <b>RE/MAX</b>, <b>Inmoclick</b> , <b>MendozaProp</b> e <b>InmoUp</b>.</p>"""
+    <p class="foot">{mkt_note}. Fuentes: <b>MercadoLibre</b>, <b>RE/MAX</b>, <b>Inmoclick</b> , <b>MendozaProp</b> , <b>InmoUp</b> y <b>Argenprop</b>.</p>"""
     return _page(f"Inmueble · {p.get('titulo')}", "inventario", body)
 
 
