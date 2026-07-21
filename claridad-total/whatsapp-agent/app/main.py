@@ -59,7 +59,7 @@ async def _market_updater() -> None:
         ("RE/MAX", functools.partial(remax.scrape, 21)),  # ~500 avisos/día (21×24)
         ("Inmoclick", functools.partial(inmoclick.scrape, 5)),  # Mendoza, 3 tipos × 5 pág.
         ("MendozaProp", functools.partial(mendozaprop.scrape, 25)),  # API JSON, venta
-        ("InmoUp", functools.partial(inmoup.scrape, 8)),  # API JSON, 4 grupos, trae antigüedad
+        ("InmoUp", functools.partial(inmoup.scrape, 25)),  # API JSON, 4 grupos, trae antigüedad (auto-corta al agotar stock)
     ]
 
     async def loop() -> None:
