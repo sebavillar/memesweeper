@@ -1,13 +1,14 @@
 """Scraper de MendozaProp (mendozaprop.com) — portal local, API JSON pública.
 
 Su web (Next.js) pide los avisos a un endpoint interno abierto:
-    GET /api/properties?operationType=2&page=N   (operationType 2 = venta)
-que devuelve una lista de avisos con campos limpios (price, currency_id,
+    GET /api/properties?operationType=2&limit=100&offset=N   (operationType 2 = venta)
+que devuelve una LISTA de avisos con campos limpios (price, currency_id,
 m2/m2_covered, bedrooms, property_type_name, address, regions, images).
 
-Sin autenticación ni escudos. Paginamos hasta que no aparezcan avisos nuevos.
-Respetuoso: pausas entre páginas. La primera corrida devuelve un diagnóstico
-para calibrar si algo cambió."""
+Ojo: la API NO pagina por `page` (ignora ese parámetro y devuelve siempre los
+primeros 20). Pagina por `offset` + `limit`; pedimos de a 100 subiendo el offset.
+Sin autenticación ni escudos. Respetuoso: pausas entre lotes. La primera corrida
+devuelve un diagnóstico para calibrar si algo cambió."""
 from __future__ import annotations
 
 import logging
@@ -27,6 +28,7 @@ UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36")
 API = "https://www.mendozaprop.com/api/properties"
 OP_VENTA = 2  # operationType: 1 = alquiler, 2 = venta
+LIMIT = 100   # la API pagina por offset+limit (no por page); traemos de a 100
 # currency_id del portal: 1 = USD (dólar), 2 = ARS (peso).
 _MONEDA = {1: "USD", 2: "ARS"}
 
@@ -133,26 +135,28 @@ def _items(payload: Any) -> list[dict[str, Any]]:
 
 
 def scrape(max_pages: int = 25, pausa: float = 3.5) -> dict[str, Any]:
-    """Pagina la oferta en venta de MendozaProp y guarda comparables. Corta cuando
-    una página no trae avisos nuevos (id ya visto), así se banca que `page` no
-    exista sin caer en loop. Devuelve un diagnóstico de calibración."""
+    """Pagina la oferta en venta de MendozaProp por offset+limit y guarda
+    comparables. Corta al llegar a la última página (menos de LIMIT items) o si un
+    lote no trae nada nuevo. `max_pages` = cantidad máxima de lotes de 100.
+    Devuelve un diagnóstico de calibración."""
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     rows: list[dict[str, Any]] = []
     vistos: set[str] = set()
     diag: dict[str, Any] = {"paginas": [], "muestra": None}
 
-    for page in range(1, max_pages + 1):
-        url = f"{API}?operationType={OP_VENTA}&page={page}"
+    for i in range(max_pages):
+        offset = i * LIMIT
+        url = f"{API}?operationType={OP_VENTA}&limit={LIMIT}&offset={offset}"
         try:
             r = _get(url)
         except Exception as exc:  # noqa: BLE001
-            diag["paginas"].append({"pagina": page, "error": str(exc)[:120]})
+            diag["paginas"].append({"offset": offset, "error": str(exc)[:120]})
             break
 
         try:
             items = _items(r.json())
         except Exception:  # noqa: BLE001
-            diag["paginas"].append({"pagina": page, "status": r.status_code, "error": "no-JSON"})
+            diag["paginas"].append({"offset": offset, "status": r.status_code, "error": "no-JSON"})
             break
 
         nuevos = 0
@@ -164,13 +168,13 @@ def scrape(max_pages: int = 25, pausa: float = 3.5) -> dict[str, Any]:
                 rows.append(row)
                 nuevos += 1
 
-        diag["paginas"].append({"pagina": page, "status": r.status_code,
+        diag["paginas"].append({"offset": offset, "status": r.status_code,
                                 "items": len(items), "nuevos": nuevos})
         if diag["muestra"] is None and items:
             it0 = items[0]
             diag["muestra"] = {"transaction_type_name": it0.get("transaction_type_name"),
                                "parseado": _parse(it0, now)}
-        if nuevos == 0:  # página vacía o repetida → no hay más
+        if len(items) < LIMIT or nuevos == 0:  # última página o sin novedades → fin
             break
         time.sleep(pausa)
 
